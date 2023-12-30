@@ -1,0 +1,139 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+    --green: #397367;
+}
+
+@layer base {
+    html {
+        @apply bg-gray;
+        @apply font-default;
+    }
+
+    .shadowed {
+        box-shadow: 10px 10px 0px 0 var(--green);
+    }
+}
+
+
+.blogpost  > p {
+    @apply my-2
+}
+
+.blogpost > ul {
+    @apply list-disc list-inside my-2
+}
+
+.blogpost > ol {
+    @apply list-decimal list-inside my-2
+}
+
+.blogpost > h1 {
+    @apply text-3xl my-2
+}
+
+.blogpost > h2 {
+    @apply text-2xl my-2
+}
+
+.blogpost >h3 {
+    @apply text-xl my-2
+}
+
+.blogpost > table > tbody {
+    @apply text-center
+}
+
+.blogpost > table > thead {
+    @apply text-center
+}
+
+.blogpost > blockquote {
+    @apply bg-gray p-2 rounded italic
+}
+
+.blogpost > * > code {
+    @apply bg-gray rounded
+}
+
+/* https://tailwindcomponents.com/component/pure-css-dropdown-menu */
+
+#sortbox:checked ~ #sortboxmenu {
+    @apply flex
+}
+
+/* https://alvarotrigo.com/blog/hamburger-menu-css/ https://codepen.io/alvarotrigo/pen/PoJGObg */
+
+.toggler{
+    /* ALWAYS KEEPING THE TOGGLER OR THE CHECKBOX ON TOP OF EVERYTHING :  */
+    z-index:2;
+    height: 50px;
+    width: 50px;
+    position: absolute;
+    cursor: pointer;
+    opacity: 0;
+}
+
+.hamburger{
+    height: 40px;
+    width: 40px;
+    padding: 0.6rem;
+
+    /* FOR DISPLAYING EVERY ELEMENT IN THE CENTER : */
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* CREATING THE MIDDLE LINE OF THE HAMBURGER : */
+
+.hamburger > div{
+    position: relative;
+    top: 0;
+    left: 0;
+    @apply bg-white;
+    height: 2px;
+    width: 60%;
+    transition: all  0.4s ease;
+}
+
+/* CREATING THE TOP AND BOTTOM LINES :
+TOP AT -10PX ABOVE THE MIDDLE ONE AND BOTTOM ONE IS 10PX BELOW THE MIDDLE: */
+
+.hamburger > div::before,
+.hamburger > div::after{
+    content: '';
+    position: absolute;
+    top: -10px;
+    @apply bg-white;
+    width: 100%;
+    height: 2px;
+    transition: all  0.4s ease;
+}
+
+.hamburger > div::after{
+    top: 10px;
+}
+
+/* IF THE TOGGLER IS IN ITS CHECKED STATE, THEN SETTING THE BACKGROUND OF THE MIDDLE LAYER TO COMPLETE BLACK AND OPAQUE :  */
+
+.toggler:checked + .hamburger > div{
+    background: rgba(0,0,0,0);
+}
+
+.toggler:checked + .hamburger > div::before{
+    top: 0;
+    transform: rotate(45deg);
+    @apply bg-white;
+}
+
+/* AND ROTATING THE TOP AND BOTTOM LINES :  */
+
+.toggler:checked + .hamburger > div::after{
+    top: 0;
+    transform: rotate(135deg);
+    @apply bg-white;
+}
