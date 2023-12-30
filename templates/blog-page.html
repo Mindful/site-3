@@ -1,7 +1,12 @@
-{% block content %}
-<h1 class="title">
+<!DOCTYPE html>
+<html lang="ja">
+<body>
+  <h1 class="title">
   {{ page.title }}
 </h1>
 <p class="subtitle"><strong>{{ page.date }}</strong></p>
-{{ page.content | safe }}
-{% endblock content %}
+  <div class="entry-content">
+    {{ page.content | safe }}
+</div>
+</body>
+</html>
