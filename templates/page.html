@@ -6,7 +6,7 @@
 </head>
 <head>
     <meta charset="UTF-8">
-    <title>{{ section.title }}</title>
+    <title>{{ page.title }}</title>
 </head>
 <main>
 <nav class="flex bg-green p-0 h-16">
@@ -44,20 +44,19 @@
 <body>
 
 	<div>
-
     {% if lang == "en" %}
         <!-- If the current page is in English, show link to Japanese -->
         <a href="{{ get_url(path=current_path, lang="ja") }}">日本語</a>
     {% else %}
-        {% set base_path = section.path | replace(from='/' ~ lang ~ '/', to='') %}
+        {% set base_path = page.path | replace(from='/' ~ lang ~ '/', to='') %}
         <!-- If the current page is in Japanese, show link to English -->
         <a href="{{ get_url(path=base_path) }}">English</a>
     {% endif %}
 </div>
     <header>
-        <h1>{{ section.title }}</h1>
+        <h1>{{ page.title }}</h1>
     </header>
-		{{ section.content | safe }}
+		{{ page.content | safe }}
 </body>
 </main>
 </html>
