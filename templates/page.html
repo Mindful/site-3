@@ -14,7 +14,7 @@
         <!-- Replace LangLink with a tag -->
         <a href="/" class="text-white"><span>Joshua Tanner</span></a>
     </div>
-    <div style="borderLeft: 1px solid white; height: 100%" class="mr-6"/>
+	<div style="border-left: 1px solid white; height: 100%;" class="mr-6"></div>
     <div class="flex w-full items-center text-white">
 
         <div class="hidden sm:flex">
@@ -38,6 +38,8 @@
             </div>
         </div>
 
+        <a class="absolute right-4" href="/">English</a>
+
     </div>
 </nav>
 
@@ -46,7 +48,7 @@
 	<div>
     {% if lang == "en" %}
         <!-- If the current page is in English, show link to Japanese -->
-        <a href="{{ get_url(path=current_path, lang="ja") }}">日本語</a>
+        <a href="{{ get_url(path=current_path, lang="ja") | replace(from='//', to='/') }}">日本語</a>
     {% else %}
         {% set base_path = page.path | replace(from='/' ~ lang ~ '/', to='') %}
         <!-- If the current page is in Japanese, show link to English -->

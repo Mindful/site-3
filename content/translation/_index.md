@@ -1,6 +1,6 @@
 +++
 title = "Joshua Tanner"
-template = "page.html"
+template = "base.html"
 +++
 
 translation
