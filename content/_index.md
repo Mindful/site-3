@@ -1,6 +1,7 @@
 +++
 title = "Joshua Tanner"
-template = "index.html"
+template = "base.html"
 +++
 
+OOgiby
 OOgiby

@@ -3,6 +3,7 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <link rel="stylesheet" href="{{ get_url(path="styles/styles.css")}}" />
+ <link rel="icon" type="image/x-icon" href="/images/favicon.png">
 </head>
 <head>
     <meta charset="UTF-8">
@@ -12,7 +13,7 @@
 <nav class="flex bg-green p-0 h-16">
     <div class="flex items-center flex-shrink-0 text-white mr-6 ml-6">
         <!-- Replace LangLink with a tag -->
-        <a href="/" class="text-white"><span>Joshua Tanner</span></a>
+        <a href="{{ get_url(path="@/_index.md", lang=lang) }}" class="text-white"><span>Joshua Tanner</span></a>
     </div>
 <div style="border-left: 1px solid white; height: 100%;" class="mr-6"></div>
 
@@ -20,9 +21,9 @@
 
         <div class="hidden sm:flex">
             <!-- Replace LangLink with a tags for each link -->
-            <a href='/technical' class="text-white mr-4">SOFTWARE</a>
-            <a href='/translation' class="text-white mr-4">TRANSLATION</a>
-            <a href='/blog' class="text-white">BLOG</a>
+            <!--<a href='/technical' class="text-white mr-4">SOFTWARE</a> -->
+            <a href='{{ get_url(path="@/translation/_index.md", lang=lang) }}' class="text-white mr-4">TRANSLATION</a>
+            <a href='{{ get_url(path="@/blog/_index.md", lang=lang) }}' class="text-white">BLOG</a>
         </div>
 
         <div class="relative content-center -ml-4 sm:hidden">
@@ -56,18 +57,10 @@
 <div class="flex md:flex-row flex-col px-5 md:pr-0 items-center md:items-start">
 	<div class="flex m-10 w-full">
 	    <div class="flex p-8 sm:p-14 bg-white shadowed w-full">
-	    	oogie
+			
+			{{ section.content | safe }}
+		    {% block content %} {% endblock %}
 
-	    		<div>
-    {% if lang == "en" %}
-        <!-- If the current page is in English, show link to Japanese -->
-        <a href="{{ get_url(path=current_path, lang="ja")}}">日本語</a>
-    {% else %}
-        {% set base_path = section.path | replace(from='/' ~ lang ~ '/', to='') %}
-        <!-- If the current page is in Japanese, show link to English -->
-        <a href="{{ get_url(path=base_path) }}">English</a>
-    {% endif %}
-</div>
 		</div>
 	</div>
 	    <!-- Sidebar component goes here -->
