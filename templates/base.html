@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ section.title }}</title>
+</head>
+<body>
+	<div>
+    {% if lang == "en" %}
+        <!-- If the current page is in English, show link to Japanese -->
+        <a href="{{ get_url(path='/ja') }}">日本語</a>
+    {% else %}
+        <!-- If the current page is in Japanese, show link to English -->
+        <a href="{{ get_url(path='/') }}">English</a>
+    {% endif %}
+</div>
+    <header>
+        <h1>{{ section.title }}</h1>
+    </header>
+    <main>
+        {{ section.content | safe }}
+    </main>
+</body>
+</html>
