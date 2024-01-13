@@ -3,10 +3,6 @@ title = "Joshua Tanner"
 template = "index.html"
 aliases = ["/ja/technical"] # from old business card links
 
-[extra]
-section1 = """
-This is one *content* __section__!
-"""
 +++
 
 初めまして！[Mantra株式会社](https://mantra.co.jp/index.html)でエンジニアを務めている、ジョシュア・ターナーと申します。 エンジニアとしては自然言語処理とバックエンド開発を専門に扱っていますが、たまに[翻訳家や通訳者](/ja/translation)として活動することもあります。
@@ -15,3 +11,7 @@ This is one *content* __section__!
 
 
 {{ resume(url="https://mindful.github.io/resume/pdfs/resume-nopii-useja-nolong.pdf") }}
+
+フリーでコンサルタントもやっています。過去のクライエントの一部は下記に記載します。
+
+{{ clients() }}

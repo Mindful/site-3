@@ -1,0 +1,16 @@
+{% macro post(page) %}
+  <div class="flex p-8 sm:p-14 bg-white shadowed w-full flex-col mb-6">
+    <header class="text-3xl md:text-4xl my-4">
+	    {% if current_path == page.path %}
+		    {{ page.title }}
+		{% else %}
+	      <a href="{{ page.permalink | safe }}">{{ page.title }}</a>
+		{% endif %}
+    </header>
+    <span class="mb-2">{{ page.date | safe }}</span>
+    <div class="blogpost">
+      {{ page.content | safe }}
+    </div>
+  </div>
+{% endmacro post %}
+

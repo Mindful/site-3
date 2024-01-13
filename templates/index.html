@@ -3,26 +3,12 @@
 {% block box_content %}
 
 <div class="flex flex-col sm:flex-row">
-	<div class="w-full inline-block sm:w-1/2">
-		<img class="flex max-w-[50%] rounded-full m-auto" alt="portrait" src="/images/profile.jpg">
+	<div class="w-full inline-block sm:w-1/4">
+		<img class="flex max-w-[50%] sm:max-w-[100%] mb-4 sm:mb-0 rounded-full m-auto" alt="portrait" src="/images/profile.jpg">
 	</div>
-	<div class="w-full sm:pl-5 sm:w-1/2">
+	<div class="w-full sm:pl-5 sm:w-3/4">
 		{{ section.content | safe }}
 	</div>
 
-</div>
-<div class="w-full">
-	    {{ section.extra.section1 | markdown(inline=true) | safe}}
-</div>
-<div class="flex justify-start">
-	<a href="https://www.flag-pictures.co.jp" class="px-4">
-		<img src="/images/logo_flag.svg" alt="logo_flag" class="hover:scale-125 transition duration-500 cursor-pointer h-24"/>
-	</a>
-	<a href="https://pangea.chat/" class="px-4">
-		<img src="/images/logo_pangeachat.png" alt="logo_pangeachat" class="hover:scale-125 transition duration-500 cursor-pointer h-24"/>
-	</a>
-	<a href="https://www.octanove.com/" class="px-4">
-		<img src="/images/logo_octanove.svg" alt="logo_octanove" class="hover:scale-125 transition duration-500 cursor-pointer h-24"/>
-	</a>
 </div>
 {% endblock box_content %}

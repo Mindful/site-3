@@ -1,11 +1,7 @@
 {% extends "base.html" %}
+{% import "macros/blog.html" as blog %}
 
-{% block box_content %}
-<header class="text-3xl md:text-4xl my-4">
-      {{ page.title }}
-</header>
-<span class="mb-2">{{ page.date | safe }}</span>
-<div class="blogpost">
-  {{ page.content | safe }}
-</div>
-{% endblock box_content %}
+
+{% block content %}
+{{ blog::post(page=page) }}
+{% endblock content %}

@@ -1,16 +1,10 @@
 {% extends "base.html" %}
+{% import "macros/blog.html" as blog %}
+
 
 {% block content %}
   <!-- If you are using pagination, section.pages will be empty. You need to use the paginator object -->  
   {% for page in section.pages %}
-  <div class="flex p-8 sm:p-14 bg-white shadowed w-full flex-col mb-6">
-    <header class="text-3xl md:text-4xl my-4">
-      <a href="{{ page.permalink | safe }}">{{ page.title }}</a>
-    </header>
-    <span class="mb-2">{{ page.date | safe }}</span>
-    <div class="blogpost">
-      {{ page.content | safe }}
-    </div>
-  </div>
+    {{ blog::post(page=page) }}
   {% endfor %}
 {% endblock content %}
