@@ -48,7 +48,7 @@
 
 			{% if lang == "en" %}
 			<!-- If the current page is in English, show link to Japanese -->
-			<a href="{{ get_url(path=current_path, lang="ja")}}" class="absolute right-4">日本語</a>
+			<a href="{{ get_url(path=current_path, lang="ja")}}" class="absolute md:right-8 right-4">日本語</a>
 			{% else %}
 			{% if section %}
 				{% set base_path = section.path | replace(from='/' ~ lang ~ '/', to='') %}
@@ -56,7 +56,7 @@
 				{% set base_path = page.path | replace(from='/' ~ lang ~ '/', to='') %}
 			{% endif %}
 			<!-- If the current page is in Japanese, show link to English -->
-			<a href="{{ get_url(path=base_path) }}" class="absolute right-4">English</a>
+			<a href="{{ get_url(path=base_path) }}" class="absolute md:right-8 right-4">English</a>
 			{% endif %}
 
 		</div>
