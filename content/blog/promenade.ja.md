@@ -11,10 +11,4 @@ title = "生研ニュースの記事を執筆しました"
 
 ちなみに、記事の文頭に出てくることわざは日本語と[イディッシュ語](https://ja.wikipedia.org/wiki/%E3%82%A4%E3%83%87%E3%82%A3%E3%83%83%E3%82%B7%E3%83%A5%E8%AA%9E)（東欧のユダヤ人の言語）で書いていますが、実は英語で「Man makes plans and god laughs」として親に教えてもらったもので、この記事の下調べで初めてそれがイディッシュ語のことわざだと知りました。ご先祖様が東欧ユダヤ人なのはもちろん知っていましたが、普段から使っている英語にイディッシュ語の直訳があることに驚き、少しだけ自分のルーツを感じました。
 
-## [例の記事はここで閲覧できます](https://issuu.com/utokyo-iis/docs/iisnews189/26) [^1]
-
-[^1]: 理想としては同ページでも読めるように埋め込みたかったのですが、大学にリンクを貼るように言われています。
-
-[comment]: <> (<iframe style="width:100%; height: 700px" id="seiken-pdf" src="/pdf_viewer/viewer.html?file=/IISNEWS189.pdf#page=27&pagemode=none" title="webviewer" frameborder="0" width="500" height="600"></iframe>)
-
-
+## [記事はここで閲覧できます](https://issuu.com/utokyo-iis/docs/iisnews189/26) 

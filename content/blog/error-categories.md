@@ -158,9 +158,13 @@ I promised that I would provide rough information about the distribution of thes
 
 Thanks for reading until the end. I hope that this was interesting, if not useful. 
 
+<hr/>
 
 [^1]: [The BEA-2019 Shared Task on Grammatical Error Correction](https://www.aclweb.org/anthology/W19-4406.pdf)
+
 [^2]: Example sentences are sampled from [BEA-2019](https://www.cl.cam.ac.uk/research/nl/bea2019st/) FCE v2.1 and NUCLE datasets.
+
 [^3]: [Correcting Preposition Errors in Learner English Using Error Case Frames and Feedback Messages](https://www.aclweb.org/anthology/P14-1071.pdf) and [Extracting Formulaic Expressions and Grammar and Edit Patterns to Assist Academic Writing](https://www.semanticscholar.org/paper/Extracting-Formulaic-Expressions-and-Grammar-and-to-Chen-Chang/c697f852e8f17c96e641858e9f88a0986ccb4b65)
+
 [^4]: Unlike other examples, I made this one up.
 

@@ -65,16 +65,17 @@
 	<body>
 
 		<div class="flex md:flex-row flex-col px-5 md:pr-0 items-center md:items-start">
-			{% block content %}
-			<div class="flex m-10 w-full">
+			<div class="flex m-10 w-full flex-col">
+				{% block content %}
 				<div class="flex flex-col p-8 sm:p-14 bg-white shadowed w-full">
 
 					{% block box_content %}
 					{% endblock box_content %}
 
 				</div>
+				{% endblock content %}
 			</div>
-			{% endblock content %}
+
 
 
 			{% block sidebar %}

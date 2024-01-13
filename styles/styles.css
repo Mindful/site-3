@@ -18,9 +18,10 @@
 }
 
 
-.blogpost  > p {
-    @apply my-2
+.blogpost > p:not(.footnote-definition > p) {
+    @apply my-2;
 }
+
 
 .blogpost > ul {
     @apply list-disc list-inside my-2
@@ -57,6 +58,27 @@
 .blogpost > * > code {
     @apply bg-gray rounded
 }
+
+.footnote-definition {
+    padding-top: 10px;
+    display: flex;
+    align-items: start;
+    gap: 4px;
+}
+
+.footnote-definition sup {
+    flex-shrink: 0;
+    line-height: 1;
+    font-size: medium;
+    font-weight: 900;
+    margin-top: 0.5em; /* Adjusts the position closer to the top of the paragraph */
+}
+
+.footnote-definition p {
+    margin: 0;
+    flex-grow: 1;
+}
+
 
 /* https://tailwindcomponents.com/component/pure-css-dropdown-menu */
 

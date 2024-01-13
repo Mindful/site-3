@@ -828,7 +828,7 @@ html {
   --green: #397367;
 }
 
-.blogpost  > p {
+.blogpost > p:not(.footnote-definition > p) {
   margin-top: 0.5rem;
   margin-bottom: 0.5rem;
 }
@@ -888,6 +888,27 @@ html {
   border-radius: 0.25rem;
   --tw-bg-opacity: 1;
   background-color: rgb(232 237 237 / var(--tw-bg-opacity));
+}
+
+.footnote-definition {
+  padding-top: 10px;
+  display: flex;
+  align-items: start;
+  gap: 4px;
+}
+
+.footnote-definition sup {
+  flex-shrink: 0;
+  line-height: 1;
+  font-size: medium;
+  font-weight: 900;
+  margin-top: 0.5em;
+  /* Adjusts the position closer to the top of the paragraph */
+}
+
+.footnote-definition p {
+  margin: 0;
+  flex-grow: 1;
 }
 
 /* https://tailwindcomponents.com/component/pure-css-dropdown-menu */

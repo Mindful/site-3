@@ -1,7 +1,6 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="flex m-10 w-full flex-col">
   <!-- If you are using pagination, section.pages will be empty. You need to use the paginator object -->  
   {% for page in section.pages %}
   <div class="flex p-8 sm:p-14 bg-white shadowed w-full flex-col mb-6">
@@ -14,5 +13,4 @@
     </div>
   </div>
   {% endfor %}
-</div>
 {% endblock content %}
