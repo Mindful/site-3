@@ -1,12 +1,11 @@
-<!DOCTYPE html>
-<html lang="ja">
-<body>
-  <h1 class="title">
-  {{ page.title }}
-</h1>
-<p class="subtitle"><strong>{{ page.date }}</strong></p>
-  <div class="entry-content">
-    {{ page.content | safe }}
+{% extends "base.html" %}
+
+{% block box_content %}
+<header class="text-3xl md:text-4xl my-4">
+      {{ page.title }}
+</header>
+<span class="mb-2">{{ page.date | safe }}</span>
+<div class="blogpost">
+  {{ page.content | safe }}
 </div>
-</body>
-</html>
+{% endblock box_content %}
