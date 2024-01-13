@@ -1,6 +1,6 @@
 +++
 title = "Joshua Tanner"
-template = "base.html"
+template = "index.html"
 +++
 
 日本語

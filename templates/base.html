@@ -55,15 +55,20 @@
 <body>
 
 <div class="flex md:flex-row flex-col px-5 md:pr-0 items-center md:items-start">
+
+	{% block content %}
 	<div class="flex m-10 w-full">
-	    <div class="flex p-8 sm:p-14 bg-white shadowed w-full">
+	    <div class="flex flex-col p-8 sm:p-14 bg-white shadowed w-full">
 			
+			{% block box_content %}
 			{{ section.content | safe }}
-		    {% block content %} {% endblock %}
+			{% endblock box_content %}
 
 		</div>
 	</div>
-	    <!-- Sidebar component goes here -->
+	{% endblock content %}
+
+	{% block sidebar %}
 	<div class="flex flex-row md:flex-col md:shrink-[0.15] bg-transparent md:h-full md:mr-5 md:mt-10 bg-transparent md:py-0 -my-5 space-x-8 md:space-x-0">
 	    <a href="https://github.com/Mindful">
 	        <img src="/images/social-github.svg" alt="github" class="w-auto h-auto md:w-3/4 md:h-3/4 pt-2 pb-2"/>
@@ -84,6 +89,7 @@
 	        <img src="/images/social-email.svg" alt="email" class="w-auto h-auto md:w-3/4 md:h-3/4 pt-2 pb-2"/>
 	    </a>
 	</div>
+	{% endblock sidebar %}
 
 </div>
 
