@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block box_content %}
+
+
+
+
+<div class="flex flex-col sm:flex-row">
+	<div class="w-full sm:pl-5 sm:w-1/2">
+							{{ section.content | safe }}
+		<div class="w-full flex justify-center">
+			<a href="https://mindful.github.io/resume/pdfs/resume-nopii-nouseja-nolong.pdf" class="bg-transparent hover:bg-green text-green font-semibold hover:text-white py-2 px-4 border border-green hover:border-transparent rounded">
+				Resume
+			</a>
+		</div>
+	</div>
+	<div class="w-full inline-block sm:w-1/2">
+		<img class="flex max-w-[60%] m-auto" alt="interpreting" src="/images/interpreting.jpeg">
+	</div>
+
+</div>
+
+
+{% endblock box_content %}

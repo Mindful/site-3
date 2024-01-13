@@ -2,43 +2,45 @@
 
 {% block box_content %}
 
-		<div class="flex flex-col sm:flex-row">
-			<div class="w-full inline-block sm:w-1/2">
-	            <img class="flex max-w-[50%] rounded-full m-auto" alt="Self portrait" src="profile.jpg">
-	        </div>
-	        <div class="w-full sm:pl-5 sm:w-1/2">
-	            <p>Hi there! My name is Joshua Tanner, and I currently work as a software engineer
-	                at <a class="inline underline" href="https://mantra.co.jp/index_en.html">Mantra Inc.</a> As an engineer I
-	                work primarily in <a class="inline underline" href="/technical">natural language processing and backend development</a>,
-	                and I also occasionally work as a <a class="inline underline" href="/translation">translator and interpreter</a>.
-	            </p>
-	            <br/>
-	            <p>
-	                If you are interested in working with me on something, please feel to reach out. I am most interested in
-	                language-related projects - in particular those that support language learners - but I am always happy
-	                to hear about a good idea.
-	            </p>
-	            <div class="w-full flex justify-center">
-					<button class="bg-transparent hover:bg-green text-green font-semibold hover:text-white py-2 px-4 border border-green hover:border-transparent rounded">
-					  Resume
-					</button>
-				</div>
+<div class="flex flex-col sm:flex-row">
+	<div class="w-full inline-block sm:w-1/2">
+		<img class="flex max-w-[50%] rounded-full m-auto" alt="portrait" src="/images/profile.jpg">
+	</div>
+	<div class="w-full sm:pl-5 sm:w-1/2">
+							{{ section.content | safe }}
 
-	        </div>
-
-	   </div>
-	   <div class="w-full">
-	   	more text
-	   </div>
-		<div class="flex justify-start">
-		  <a href="https://www.flag-pictures.co.jp" class="px-4">
-		    <img src="/images/logo_flag.svg" alt="logo_flag" class="hover:scale-125 transition duration-500 cursor-pointer h-24"/>
-		  </a>
-		  <a href="https://pangea.chat/" class="px-4">
-		    <img src="/images/logo_pangeachat.png" alt="logo_pangeachat" class="hover:scale-125 transition duration-500 cursor-pointer h-24"/>
-		  </a>
-		  <a href="https://www.octanove.com/" class="px-4">
-		    <img src="/images/logo_octanove.svg" alt="logo_octanove" class="hover:scale-125 transition duration-500 cursor-pointer h-24"/>
-		  </a>
+<!-- 		<p>Hi there! My name is Joshua Tanner, and I currently work as a software engineer
+			at <a class="inline underline" href="https://mantra.co.jp/index_en.html">Mantra Inc.</a> As an engineer I
+			work primarily in <a class="inline underline" href="/technical">natural language processing and backend development</a>,
+			and I also occasionally work as a <a class="inline underline" href="/translation">translator and interpreter</a>.
+		</p>
+		<br/>
+		<p>
+			If you are interested in working with me on something, please feel to reach out. I am most interested in
+			language-related projects - in particular those that support language learners - but I am always happy
+			to hear about a good idea.
+		</p> -->
+		<div class="w-full flex justify-center">
+			<a href="https://mindful.github.io/resume/pdfs/resume-nopii-nouseja-nolong.pdf" class="bg-transparent hover:bg-green text-green font-semibold hover:text-white py-2 px-4 border border-green hover:border-transparent rounded">
+				Resume
+			</a>
 		</div>
+
+	</div>
+
+</div>
+<div class="w-full">
+	Previous Clients:
+</div>
+<div class="flex justify-start">
+	<a href="https://www.flag-pictures.co.jp" class="px-4">
+		<img src="/images/logo_flag.svg" alt="logo_flag" class="hover:scale-125 transition duration-500 cursor-pointer h-24"/>
+	</a>
+	<a href="https://pangea.chat/" class="px-4">
+		<img src="/images/logo_pangeachat.png" alt="logo_pangeachat" class="hover:scale-125 transition duration-500 cursor-pointer h-24"/>
+	</a>
+	<a href="https://www.octanove.com/" class="px-4">
+		<img src="/images/logo_octanove.svg" alt="logo_octanove" class="hover:scale-125 transition duration-500 cursor-pointer h-24"/>
+	</a>
+</div>
 {% endblock box_content %}
