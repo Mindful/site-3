@@ -47,16 +47,17 @@
 			</div>
 
 			{% if lang == "en" %}
-			<!-- If the current page is in English, show link to Japanese -->
-			<a href="{{ get_url(path=current_path, lang="ja")}}" class="absolute md:right-8 right-4">日本語</a>
+				<!-- If the current page is in English, show link to Japanese. Delete "//" from URLS -->
+				{% set target_path = get_url(path=current_path, lang="ja") | replace(from='ja//', to='ja/') %}
+				<a href="{{ target_path }}" class="absolute md:right-8 right-4">日本語</a>
 			{% else %}
-			{% if section %}
-				{% set base_path = section.path | replace(from='/' ~ lang ~ '/', to='') %}
-			{% else %}
-				{% set base_path = page.path | replace(from='/' ~ lang ~ '/', to='') %}
-			{% endif %}
-			<!-- If the current page is in Japanese, show link to English -->
-			<a href="{{ get_url(path=base_path) }}" class="absolute md:right-8 right-4">English</a>
+				{% if section %}
+					{% set base_path = section.path | replace(from='/' ~ lang ~ '/', to='') %}
+				{% else %}
+					{% set base_path = page.path | replace(from='/' ~ lang ~ '/', to='') %}
+				{% endif %}
+				<!-- If the current page is in Japanese, show link to English -->
+				<a href="{{ get_url(path=base_path) }}" class="absolute md:right-8 right-4">English</a>
 			{% endif %}
 
 		</div>
@@ -81,22 +82,22 @@
 			{% block sidebar %}
 			<div class="flex flex-row md:flex-col md:shrink-[0.15] bg-transparent md:h-full md:mr-5 md:mt-10 bg-transparent md:py-0 -my-5 space-x-8 md:space-x-0">
 				<a href="https://github.com/Mindful">
-					<img src="/images/social-github.svg" alt="github" class="w-auto h-auto md:w-3/4 md:h-3/4 pt-2 pb-2"/>
+					<img src="/images/social-github.svg" alt="github" class="w-auto h-auto md:w-2/3 md:h-2/3 pt-2 pb-2"/>
 				</a>
 				<a href="https://stackexchange.com/users/5319885/mindful">
-					<img src="/images/social-se.svg" alt="stack exchange" class="w-auto h-auto md:w-3/4 md:h-3/4 pt-2 pb-2"/>
+					<img src="/images/social-se.svg" alt="stack exchange" class="w-auto h-auto md:w-2/3 md:h-2/3 pt-2 pb-2"/>
 				</a>
 				<a href="https://twitter.com/mindful_jt">
-					<img src="/images/social-twitter.svg" alt="twitter" class="w-auto h-auto md:w-3/4 md:h-3/4 pt-2 pb-2"/>
+					<img src="/images/social-twitter.svg" alt="twitter" class="w-auto h-auto md:w-2/3 md:h-2/3 pt-2 pb-2"/>
 				</a>
 				<a href="https://www.linkedin.com/in/joshuatanner2">
-					<img src="/images/social-linkedin.svg" alt="linkedin" class="w-auto h-auto md:w-3/4 md:h-3/4 pt-2 pb-2"/>
+					<img src="/images/social-linkedin.svg" alt="linkedin" class="w-auto h-auto md:w-2/3 md:h-2/3 pt-2 pb-2"/>
 				</a>
 				<a href="https://scholar.google.com/citations?user=OqYthY0AAAAJ&h">
-					<img src="/images/social-scholar.svg" alt="google scholar" class="w-auto h-auto md:w-3/4 md:h-3/4 pt-2 pb-2"/>
+					<img src="/images/social-scholar.svg" alt="google scholar" class="w-auto h-auto md:w-2/3 md:h-2/3 pt-2 pb-2"/>
 				</a>
 				<a href="mailto:mindful.jt@gmail.com">
-					<img src="/images/social-email.svg" alt="email" class="w-auto h-auto md:w-3/4 md:h-3/4 pt-2 pb-2"/>
+					<img src="/images/social-email.svg" alt="email" class="w-auto h-auto md:w-2/3 md:h-2/3 pt-2 pb-2"/>
 				</a>
 			</div>
 			{% endblock sidebar %}
