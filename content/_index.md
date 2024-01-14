@@ -5,15 +5,15 @@ aliases = ["/technical"] # from old business card links
 
 +++
 
-Hi there! My name is Joshua Tanner, and I currently work as a software engineer at [Mantra Inc.](https://mantra.co.jp/index_en.html) As an engineer, I work primarily in natural language processing and backend development, and I also occasionally work as a [translator and interpreter](/translation).
+Hi there! 
+
+I'm a software engineer, researcher and occasional translator/interpreter working at the intersection of technology and language. I work primarily in natural language processing (NLP) and backend development, with experience leading projects in environments from fortune-500 companies to emerging startups. 
 <br/><br>
-If you are interested in working with me on something, please feel to reach out. I am most interested in
-language-related projects - in particular those that support language learners - but I am always happy 
-to hear about a good idea.
+I am particularly interested in products or projects that aim to help language learners, but I have experience across a broad range of technologies in NLP, machine learning and software development. Please see my resume for details.
 
 {{ resume(url="https://mindful.github.io/resume/pdfs/resume-nopii-nouseja-nolong.pdf") }}
 
-I also freelance as a consultant. Some of my previous clients can be seen below:
+Please don't hesitate to reach out if you have a project you think I might be able to help with! Invitations for resesarch collaboration are welcome, and I also freelance as a technical consultant. Some of my past clients can be seen below.
 
 {{ clients() }}
 
