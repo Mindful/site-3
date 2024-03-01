@@ -885,6 +885,16 @@ html {
   text-align: center;
 }
 
+.blogpost > p > code {
+  --tw-bg-opacity: 1;
+  background-color: rgb(232 237 237 / var(--tw-bg-opacity));
+}
+
+.blogpost > * > a {
+  color: var(--green);
+  text-decoration-line: underline;
+}
+
 .blogpost > table > thead {
   text-align: center;
 }
@@ -897,10 +907,16 @@ html {
   font-style: italic;
 }
 
-.blogpost > * > code {
-  border-radius: 0.25rem;
-  --tw-bg-opacity: 1;
-  background-color: rgb(232 237 237 / var(--tw-bg-opacity));
+.blogpost > pre {
+  padding: 0.5em;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.blogpost > * > img {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .footnote-definition {

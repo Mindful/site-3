@@ -25,9 +25,9 @@ Note that in many cases there are multiple candidate word groups for a single MW
 ## How to retrieve possible MWEs 
 While some MWEs have constraints on how they can be formed in a sentence, if we include verbal MWEs there are very few gaurantees. They do not have to be contiguous - see `put_down` in `She put her beloved dog down` - and worse, they do not even have to be in order - see `the beans have been spilled` for `spill_the_beans`. Finally, the constituent words of an MWE are not always unique, such as in `face_to_face`.
 
-Given all of the above, the formalization of our possible MWE retrieval problem is: given a multiset *S* for the input sentence, and a set *L* containing multisets for each possible MWE, find all members of *L* that are strict subsets of *S*. 
+Given all of the above, the formalization of our possible MWE retrieval problem is: given a multiset *S* of words in the input sentence, and a set *L* containing multisets for each possible MWE, find all members of *L* that are strict subsets of *S*. 
 
-# TODO: math symbols
+![MWE retrieval equation](equation.svg)
 
 This means a worst case runtime of *O(M * |L|)* where *M* is the average size of an MWE multiset. This is a very expensive upper bound, and consequently the naieve approach below of checking if every possible MWE is a subset of the words in the sentence ends up being very slow. 
 
@@ -69,7 +69,6 @@ class TrieNode:
 
 
 class Trie:
-
     def __init__(self):
         self.tree = self._build_tree(get_mwes())
 
@@ -146,7 +145,7 @@ Using this re-ordered trie approach, it takes only 0.5 seconds on average to pro
 
 ![Average time by method](average_time_by_method.png)
 
-Moving from the naieve approach to using a trie is arguably a fairly obvious optimization; the further speedup we get from using word frequency to inform trie construction is the interesting thing here, and a good demonstration of how much it can help to have a good understanding of the data you are trying to process. 
+Moving from the naieve approach to using a trie is arguably a fairly obvious optimization; I think that the further speedup we get from using word frequency to inform trie construction is the interesting part here, and a good demonstration of how much it can help to have a good understanding of the data you are trying to process. 
 
 <hr/>
 

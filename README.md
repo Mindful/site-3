@@ -10,3 +10,8 @@ To test site:
 ```shell
 ./tailwindcss -i styles/styles.css -o static/styles/styles.css && zola serve
 ```
+
+
+## Math
+
+For simple equations, [this site](https://viereck.ch/latex-to-svg/) does conversions. 

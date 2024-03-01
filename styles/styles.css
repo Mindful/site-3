@@ -47,6 +47,14 @@
     @apply text-center
 }
 
+.blogpost > p > code {
+    @apply bg-gray
+}
+
+.blogpost > * > a {
+    @apply underline text-green
+}
+
 .blogpost > table > thead {
     @apply text-center
 }
@@ -55,8 +63,16 @@
     @apply bg-gray p-2 rounded italic
 }
 
-.blogpost > * > code {
-    @apply bg-gray rounded
+.blogpost > pre {
+  padding: 0.5em;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.blogpost > * > img {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .footnote-definition {
