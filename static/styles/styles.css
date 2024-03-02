@@ -885,9 +885,18 @@ html {
   text-align: center;
 }
 
-.blogpost > p > code {
+/* Apply styles to all <code> elements within .blogpost */
+
+.blogpost code {
   --tw-bg-opacity: 1;
   background-color: rgb(232 237 237 / var(--tw-bg-opacity));
+}
+
+/* Reset or override the styles for <code> elements directly within <pre> */
+
+.blogpost pre > code {
+  background-color: transparent;
+  /* Replace 'bg-none' with whatever resets or overrides you need */
 }
 
 .blogpost > * > a {

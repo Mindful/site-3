@@ -47,9 +47,17 @@
     @apply text-center
 }
 
-.blogpost > p > code {
-    @apply bg-gray
+/* Apply styles to all <code> elements within .blogpost */
+.blogpost code {
+  @apply bg-gray;
 }
+
+/* <code> in <pre> should be transparent because it's a syntax highlighted
+code block */
+.blogpost pre > code {
+  @apply bg-transparent;
+}
+
 
 .blogpost > * > a {
     @apply underline text-green
