@@ -143,7 +143,7 @@ Using this re-ordered Trie approach, it takes only 0.5 seconds on average to pro
 
 ![Average time by method](average_time_by_method.png)
 
-Moving from the naieve approach to using a Trie is arguably a fairly obvious optimization; I think the interesting part is the further speedup we get from using word frequency to inform Trie construction. Most importantly, it's also a good demonstration of how much it can help to have a good understanding of the data/domain you are trying to process. This further speedup was only possible by thinking about what the input data (English sentences) would look like.
+Moving from the naieve approach to using a Trie is arguably a fairly obvious optimization; I think the interesting part is the further speedup we get from using word frequency to inform Trie construction. Most importantly, it's also a good demonstration of how much it can help to have a good understanding of the data/domain you are trying to process. This further speedup was only made possible by thinking about what the distribution of the input data (words in English sentences) would look like.
 
 <hr/>
 

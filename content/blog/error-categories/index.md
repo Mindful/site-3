@@ -14,7 +14,7 @@ I recently worked on a research project attempting to group grammatical errors i
 ## How are errors normally classified?
 There isn't really a standard set of categories for grammatical errors, so categorizations can vary wildly depending on the goals of the project. The closest thing that the natural language processing community has to a standard set of categories is provided by an automatic classification tool called [ERRANT](https://www.aclweb.org/anthology/P17-1074.pdf), which categorizes errors in pairs of erroneous and corrected sentences based on the content that was changed in the corrected version.
 
-![ERRANT classification examples](/images/errant-classification-examples.png)
+![ERRANT classification examples](errant-classification-examples.png)
 
 ERRANT is a great tool for analysis, but its categories are not exceptionally useful for explaining to someone why their error is an error, and it classifies about 20% of errors as `OTHER`[^1]. Note that this prevalence of `OTHER` type errors is not a reflection of some kind of failure on ERRANT's part; some portion of errors simply do not fit cleanly into any kind of category.
 
@@ -66,7 +66,7 @@ A lot of semantic errors boil down to choosing the wrong word - I.E. `read` inst
 
 The meaning of the Japanese word `おもしろい` (omoshiroi) encompasses the standard uses of both `funny` and `interesting` in English. While these are sufficiently basic words that most learners know better, if you see a native Japanese speaker say something like `the comedy was so interesting` or `the documentary was so funny`, there's a good chance that the root of the problem is that both these words map back to `おもしろい` and they picked the wrong translation. In order to be able to identify errors of this particular type you obviously need to speak the native language of the learner whose errors you're correcting, but if you can identify the word in the learner's native language which has been (mis)translated into the incorrect word it can make explaining the problem much easier (and also may help clarify whether something is actually expressing the intended meaning or not).
 
-![Graph of おもしろい mistranslation](/images/omoshiroi_graph.png)
+![Graph of おもしろい mistranslation](omoshiroi_graph.png)
 
 This kind of native language interference based on mistranslation seems like the kind of thing that should be fairly accessible to automated approaches as well, although I can only find [one paper](https://www.aclweb.org/anthology/D11-1010.pdf) in that vein.
 
@@ -76,11 +76,11 @@ This category lumps together a fairly wide range of grammatical phenomena that a
 
 The prototypical example of this in English is the subject/verb agreement error. English requires present tense nouns to match the plurality and/or person of their subject; this is the reason `the dog runs` is fine, but `the dogs runs` is not. 
 
-![SVA error example](/images/sva-error-example.png)
+![SVA error example](sva-error-example.png)
 
 Tense agreement is another good one; English often doesn't like it when verbs in a subordinate clause are in a different tense than the verb that owns this clause. In simple terms, this is why you can't say `I thought that I will go to the store`. This phenomenon also extends to sequences of verbs - changing tense in sequential verbs doesn't work in English.
 
-![tense error example](/images/tense-error-example.png)
+![tense error example](tense-error-example.png)
 
 This could even include cases where coreferring nouns and pronouns mismatch, such as plural subjects and singular pronouns like `My friends took his dog home,` although these can often also be explained as semantic errors. 
 
