@@ -47,6 +47,22 @@
     @apply text-center
 }
 
+/* Apply styles to all <code> elements within .blogpost */
+.blogpost code {
+  @apply bg-gray;
+}
+
+/* <code> in <pre> should be transparent because it's a syntax highlighted
+code block */
+.blogpost pre > code {
+  @apply bg-transparent;
+}
+
+
+.blogpost > * > a {
+    @apply underline text-green
+}
+
 .blogpost > table > thead {
     @apply text-center
 }
@@ -55,8 +71,16 @@
     @apply bg-gray p-2 rounded italic
 }
 
-.blogpost > * > code {
-    @apply bg-gray rounded
+.blogpost > pre {
+  padding: 0.5em;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.blogpost > * > img {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .footnote-definition {

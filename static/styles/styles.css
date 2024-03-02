@@ -885,6 +885,25 @@ html {
   text-align: center;
 }
 
+/* Apply styles to all <code> elements within .blogpost */
+
+.blogpost code {
+  --tw-bg-opacity: 1;
+  background-color: rgb(232 237 237 / var(--tw-bg-opacity));
+}
+
+/* Reset or override the styles for <code> elements directly within <pre> */
+
+.blogpost pre > code {
+  background-color: transparent;
+  /* Replace 'bg-none' with whatever resets or overrides you need */
+}
+
+.blogpost > * > a {
+  color: var(--green);
+  text-decoration-line: underline;
+}
+
 .blogpost > table > thead {
   text-align: center;
 }
@@ -897,10 +916,16 @@ html {
   font-style: italic;
 }
 
-.blogpost > * > code {
-  border-radius: 0.25rem;
-  --tw-bg-opacity: 1;
-  background-color: rgb(232 237 237 / var(--tw-bg-opacity));
+.blogpost > pre {
+  padding: 0.5em;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.blogpost > * > img {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .footnote-definition {
