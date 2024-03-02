@@ -25,16 +25,16 @@ Note that there are sometimes multiple candidate word groups for a single MWE. F
 
 
 ## How to retrieve possible MWEs 
-Now, the main topic: retrieving possible MWEs for step #1. While some MWEs have constraints on how they can be formed in a sentence, if we include verbal MWEs then there are very few gaurantees. They do not have to be contiguous - see `put_down` in `She put her beloved dog down` - and worse, they do not even have to be in order - see `the beans have been spilled` for `spill_the_beans`. Finally, the constituent words of an MWE are not always unique, such as in `face_to_face`.
+Now, the main topic: retrieving possible MWEs for step #1. While some MWEs have constraints on how they can be formed in a sentence, if we include verbal MWEs then there are very few guarantees. They do not have to be contiguous - see `put_down` in `She put her beloved dog down` - and worse, they do not even have to be in order - see `the beans have been spilled` for `spill_the_beans`. Finally, the constituent words of an MWE are not always unique, such as in `face_to_face`.
 
 Given that constituent words are neither required to be in order nor unique, the formalization of our possible MWE retrieval problem is: given a multiset *S* of words in the input sentence, and a set *L* containing multisets for each possible MWE, find all members of *L* that are strict subsets of *S*. 
 
 ![MWE retrieval equation](equation.svg)
 
-This means a worst case runtime of *O(M * |L|)* where *M* is the average size of an MWE multiset. This is a very expensive upper bound, and consequently the naieve approach below of checking if every possible MWE is a subset of the words in the sentence ends up being very slow. 
+This means a worst case runtime of *O(M * |L|)* where *M* is the average size of an MWE multiset, which is a pretty expensive upper bound. The naive approach of checking if every possible MWE is a subset of the words in the sentence will end up processing every multiset in the lexicon for every sentence, and is consequently very slow.
 
 ```python
-class NaieveApproach:
+class NaiveApproach:
     def __init__(self):
         self.data = [
             (mwe['lemma'], Counter(mwe['constituents']))
@@ -53,11 +53,11 @@ class NaieveApproach:
 ```
 
 
-This code takes an average of 28 seconds on my laptop to process (call `search()` on) 1,000 sentences. Fortunately, we can make this much faster using a [Trie](https://en.wikipedia.org/wiki/Trie)[^1]. Tries are prefix trees most commonly built out of characters, but because we are dealing with sequences of words, we can also build ours out of words. 
+This code takes an average of 28 seconds on my laptop to process (call `search()` on) 1,000 sentences. Fortunately, we can make this much faster using a [trie](https://en.wikipedia.org/wiki/trie)[^1]. Tries are prefix trees most commonly built out of characters, but because we are dealing with sequences of words, we can build ours out of words. 
 
 ![MWE trie](mwe_trie.png)
 
-Using our MWE trie, we can gather candidate MWEs with a depth-first search starting at the root that aborts whenever continuing down a branch of the Trie would require constituents not found in the sentence. That is, we traverse only the parts of the Trie that are subsets of the multiset consisting of words in the sentence. 
+Using our MWE trie, we can gather candidate MWEs with a depth-first search starting at the root that aborts whenever continuing down a branch of the trie would require constituents not found in the sentence. That is, we traverse only the parts of the trie that are subsets of the multiset consisting of words in the sentence. 
 
 ```python
 class TrieNode:
@@ -107,7 +107,7 @@ class Trie:
 
 This allows us to store only a single copy of any prefixes shared between multiple MWEs in our lexicon, but the main benefit is that searching this way means we will expend no compute on MWEs whose first word is not present in the sentence. This is _much_ faster, and gets through 1,000 sentences in 0.8 seconds on average. However, we can still make it a little faster.
 
-Word frequency in English is [very imbalanced](https://en.wikipedia.org/wiki/Zipf%27s_law), and many MWEs start with common words. For example, my relatively small lexicon has 169 MWEs starting with `in`, such as `in_theory`, `in_unison`, `in_vain`, etc. Since we only want MWEs where all words are present in the sentence, it makes more sense to look at the words least likely to be present first - that is, the lowest frequency words. We can do this by re-ordering the MWEs before we insert them into the Trie using precomputed [word frequency](https://raw.githubusercontent.com/arstgit/high-frequency-vocabulary/master/30k.txt). This does mean that in rare cases where MWEs share the same words and are differentiated only by order (like `roast_pork` and `pork_roast`) we will need to attach multiple MWEs to one node in the trie, but other than that it requires only minor changes.
+Word frequency in English is [very imbalanced](https://en.wikipedia.org/wiki/Zipf%27s_law), and many MWEs start with common words. For example, my relatively small lexicon has 169 MWEs starting with `in`, such as `in_theory`, `in_unison`, `in_vain`, etc. Since we only want MWEs where all words are present in the sentence, it makes more sense to look at the words least likely to be present first - that is, the lowest frequency words. We can do this by re-ordering the MWEs before we insert them into the trie using precomputed [word frequency](https://raw.githubusercontent.com/arstgit/high-frequency-vocabulary/master/30k.txt). This does mean that in rare cases where MWEs share the same words and are differentiated only by order (like `roast_pork` and `pork_roast`) we will need to attach multiple MWEs to one node in the trie, but other than that it requires only minor changes.
 
 ```python
 class OrderedTrie:
@@ -139,15 +139,15 @@ class OrderedTrie:
         return root
 ```
 
-Using this re-ordered Trie approach, it takes only 0.5 seconds on average to process 1,000 sentences, which is about a 40% speedup over the normal trie. The average time for each of the three methods can be seen in the graph below (log scale).
+Using this re-ordered trie approach, it takes only 0.5 seconds on average to process 1,000 sentences, which is about a 40% speedup over the normal trie. The average time for each of the three methods can be seen in the graph below (log scale).
 
 ![Average time by method](average_time_by_method.png)
 
-Moving from the naieve approach to using a Trie is arguably a fairly obvious optimization; I think the interesting part is the further speedup we get from using word frequency to inform Trie construction. Most importantly, it's also a good demonstration of how much it can help to have a good understanding of the data/domain you are trying to process. This further speedup was only made possible by thinking about what the distribution of the input data (words in English sentences) would look like.
+Moving from the naive approach to using a trie is arguably a fairly obvious optimization; I think the interesting part is the further speedup we get from using word frequency to inform trie construction. Most importantly, it's also a good demonstration of how much it can help to have a good understanding of the data/domain you are trying to process. This further speedup was only made possible by thinking about what the distribution of the input data (words in English sentences) would look like.
 
 <hr/>
 
-[^1]: Note that while the Trie-based approach runs much faster on average, its theoretical worst case runtime is the same as the naive approach. However, getting anywhere near this upper bound with the Trie would require a sentence containing most or all of the MWEs in the lexicon, which is not realistic.
+[^1]: Note that while the trie-based approach runs much faster on average, its theoretical worst case runtime is the same as the naive approach. However, getting anywhere near this upper bound with the trie would require a sentence containing most or all of the MWEs in the lexicon, which is not realistic.
 
 
 
