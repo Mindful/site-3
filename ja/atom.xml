@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ja">
+    <title></title>
+    <link href="https://joshuatanner.dev/ja/atom.xml" rel="self" type="application/atom+xml"/>
+    <link href="https://joshuatanner.dev/"/>
+    <generator uri="https://www.getzola.org/">Zola</generator>
+    <updated>2021-05-09T00:00:00+00:00</updated>
+    <id>https://joshuatanner.dev/ja/atom.xml</id>
+    <entry xml:lang="ja">
+        <title>生研ニュースの記事を執筆しました</title>
+        <published>2021-05-09T00:00:00+00:00</published>
+        <updated>2021-05-09T00:00:00+00:00</updated>
+        <author>
+          <name>Unknown</name>
+        </author>
+        <link rel="alternate" href="https://joshuatanner.dev/ja/blog/blog-promenade/" type="text/html"/>
+        <id>https://joshuatanner.dev/ja/blog/blog-promenade/</id>
+        
+        <content type="html">&lt;p&gt;私が現在所属している生産技術研究所は、2ヶ月に1回&lt;a href=&quot;https:&#x2F;&#x2F;www.iis.u-tokyo.ac.jp&#x2F;ja&#x2F;about&#x2F;publication&#x2F;seiken_news&#x2F;&quot;&gt;生研ニュース&lt;&#x2F;a&gt;という広報誌のようなものを出版していますが、4月号の「PROMENADE」という海外から来ている研究員が書く枠の記事を執筆しました。日本語で執筆と言えるようなものは初めてなので、記念に保管しておきたいと思いました。主に来日とそれからの生活の話ですが、記事に載っている「生研ニュース#189」へのリンクは下に載せているのでもし興味があれば読んでみてください。&lt;&#x2F;p&gt;
+&lt;p&gt;ちなみに、記事の文頭に出てくることわざは日本語と&lt;a href=&quot;https:&#x2F;&#x2F;ja.wikipedia.org&#x2F;wiki&#x2F;%E3%82%A4%E3%83%87%E3%82%A3%E3%83%83%E3%82%B7%E3%83%A5%E8%AA%9E&quot;&gt;イディッシュ語&lt;&#x2F;a&gt;（東欧のユダヤ人の言語）で書いていますが、実は英語で「Man makes plans and god laughs」として親に教えてもらったもので、この記事の下調べで初めてそれがイディッシュ語のことわざだと知りました。ご先祖様が東欧ユダヤ人なのはもちろん知っていましたが、普段から使っている英語にイディッシュ語の直訳があることに驚き、少しだけ自分のルーツを感じました。&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;ji-shi-hakokodeyue-lan-dekimasu&quot;&gt;&lt;a href=&quot;https:&#x2F;&#x2F;issuu.com&#x2F;utokyo-iis&#x2F;docs&#x2F;iisnews189&#x2F;26&quot;&gt;記事はここで閲覧できます&lt;&#x2F;a&gt;&lt;&#x2F;h2&gt;
+</content>
+        
+    </entry>
+</feed>
