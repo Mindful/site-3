@@ -892,14 +892,14 @@ html {
   background-color: rgb(232 237 237 / var(--tw-bg-opacity));
 }
 
-/* Reset or override the styles for <code> elements directly within <pre> */
+/* <code> in <pre> should be transparent because it's a syntax highlighted
+code block */
 
 .blogpost pre > code {
   background-color: transparent;
-  /* Replace 'bg-none' with whatever resets or overrides you need */
 }
 
-.blogpost > * > a {
+.blogpost a {
   color: var(--green);
   text-decoration-line: underline;
 }

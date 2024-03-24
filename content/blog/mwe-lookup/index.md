@@ -4,27 +4,23 @@ date = "2024-03-23"
 title = "Multiword expression lookup: multiset subset retrieval"
 +++
 
-I've recently spent quite a bit of time thinking about how to find [multiword expressions](https://en.wikipedia.org/wiki/Multiword_expression) (MWEs) in a sentence - I even wrote a [paper](https://aclanthology.org/2023.findings-emnlp.14/) about it. Multiword expressions are a pretty messy topic and there is a lot of ambiguity about what even counts as an MWE, but for this post I want to put that aside and talk about a specific problem: retrieving _possible_ MWEs for a given sentence. 
-
-First though, some background. I am fan of lexicon-based approaches to MWE identification, which just means that given a very large list of possible MWEs you are trying to figure out which of them might be present in a given sentence. This can be broken down into a pipeline approach that looks something like this:
-1. Retrieve all of the MWEs that _could_ be present in a sentence (the possible MWEs)
-2. Map the retrieved MWEs to concrete "candidates", which are combinations of constituent words in the sentence corresponding to a possible MWE
-3. Decide if each "candidate" is actually an MWE - that is, whether its constituents take on an idiomatic/non-compositional meaning
-
-#3 requires a system capable of making judgements about meaning in context, which typically means machine learning based approaches. Assuming that possible MWEs have already been retrieved, #2 is fairly straightforward and just requires finding each combination of words in the sentence that correspond to a retrieved MWE. #1 involes finding all MWEs that could be formed by any words in the sentence. 
+I've recently spent quite a bit of time thinking about how to find [multiword expressions](https://en.wikipedia.org/wiki/Multiword_expression) (MWEs) in a sentence. MWEs are a pretty messy topic and there is a lot of ambiguity about what even counts as an MWE, but for today I want to put that aside and talk about approaches to automatically identifying MWEs. I am fan of lexicon-based approaches to MWE identification, which just means that given a very large list of possible MWEs, you are trying to figure out which of them might be present in a given sentence. This can be broken down into a pipeline that looks something like this:
+1. Retrieve all of the MWEs that _could_ be present in a sentence (the possible MWEs) from the lexicon. The majority of this blog post will be about how to do this efficiently, because with a poorly structured lexicon this can be quite slow.
+2. Map the retrieved MWEs to concrete "candidates", which are combinations of constituent words in the sentence corresponding to a possible MWE. This just requires finding each combination of words in the sentence that correspond to a retrieved MWE, and we will cover how to do this at the end of the post.
+3. Decide if each "candidate" is actually an MWE - that is, whether its constituents take on an idiomatic/non-compositional meaning. This requires a system capable of making judgements about meaning in context, which typically means machine learning. I published a [paper](https://aclanthology.org/2023.findings-emnlp.14/) last year about one possible method to do this, but there are a variety of possible approaches and those details are beyond the scope of this blog post.
 
 ![Example sentence](poster_sentence.png)
 
 For the above sentence, these three steps look like this:
 
-1. Retrieve `run_down`, `run_over`, `fall_down`, `fall_over` as possible MWEs
-2. Map each of these MWEs to candidate groups of words in the sentence, as pictured in the above diagram
+1. Retrieve `run_down`, `run_over`, `fall_down`, `fall_over` as possible MWEs.
+2. Map each of these MWEs to candidate groups of words in the sentence, as pictured in the above diagram.
 3. Filter these so that we keep only the candidates that actually constitute MWEs. `fall_down` and `run_over` are obviously wrong, and `run_down` as an MWE means something like `(of a vehicle) to hit a person and knock them to the ground`, so we are left with `fall_over`.
 
 Note that there are sometimes multiple candidate word groups for a single MWE. For example, if we replace the last `down` with `over` for `I ran down the stairs and fell down`, there are now at least two possible instances of `run_down` - one for `ran` and the first `down`, and another for `ran` and the second `down`. This is also why it is convenient to split step #1 and #2 into separate steps.
 
 
-## How to retrieve possible MWEs 
+## Retrieving possible MWEs 
 Now, the main topic: retrieving possible MWEs for step #1. While some MWEs have constraints on how they can be formed in a sentence, if we include verbal MWEs then there are very few guarantees. They do not have to be contiguous - see `put_down` in `She put her beloved dog down` - and worse, they do not even have to be in order - see `the beans have been spilled` for `spill_the_beans`. Finally, the constituent words of an MWE are not always unique, such as in `face_to_face`.
 
 Given that constituent words are neither required to be in order nor unique, the formalization of our possible MWE retrieval problem is: given a multiset *S* of words in the input sentence, and a set *L* containing multisets for each possible MWE, find all members of *L* that are strict subsets of *S*. 
@@ -57,7 +53,7 @@ This code takes an average of 28 seconds on my laptop to process (call `search()
 
 ![MWE trie](mwe_trie.png)
 
-Using our MWE trie, we can gather candidate MWEs with a depth-first search starting at the root that aborts whenever continuing down a branch of the trie would require constituents not found in the sentence. That is, we traverse only the parts of the trie that are subsets of the multiset consisting of words in the sentence. 
+Using the MWE trie as our lexicon, we can gather candidate MWEs with a depth-first search starting at the root that aborts whenever continuing down a branch of the trie would require constituents not found in the sentence. That is, we traverse only the parts of the trie that are subsets of the multiset consisting of words in the sentence. 
 
 ```python
 class TrieNode:
@@ -144,6 +140,89 @@ Using this re-ordered trie approach, it takes only 0.5 seconds on average to pro
 ![Average time by method](average_time_by_method.png)
 
 Moving from the naive approach to using a trie is arguably a fairly obvious optimization; I think the interesting part is the further speedup we get from using word frequency to inform trie construction. Most importantly, it's also a good demonstration of how much it can help to have a good understanding of the data/domain you are trying to process. This further speedup was only made possible by thinking about what the distribution of the input data (words in English sentences) would look like.
+
+## Mapping retrieved MWEs to candidate word groups
+
+Now that we have retrieved our possible MWEs, we can look briefly at step #2: finding every combination of words in the sentence that could constitute a given MWE. For the sentence `I ran down the stairs and fell down` and the MWE `run_down`, we start by building simple representations of our sentence as tokens and our MWE as a multiset.
+```python
+from collections import namedtuple, defaultdict
+from itertools import combinations, product
+
+token = namedtuple("Token", ["form", "idx", "lemma"])
+sentence = [
+    token("I", 0, "I"),
+    token("ran", 1, "run"),
+    token("down", 2, "down"),
+    token("the", 3, "the"),
+    token("stairs", 4, "stairs"),
+    token("and", 5, "and"),
+    token("fell", 6, "fall"),
+    token("down", 7, "down"),
+    token(".", 8, "."),
+]
+
+# build a map of lemmas to tokens
+# so we can look up tokens by their lemma
+lemma_to_tokens = defaultdict(list)
+for t in sentence:
+    lemma_to_tokens[t.lemma].append(t)
+
+# mwe: "run_down"
+lemma_counter = {
+    "run": 1,
+    "down": 1,
+}
+```
+
+The next part is confusing to look at, but what we're doing isn't actually that complicated. We represent options for each lemma in the MWE as lists of tuples, and want to gather all possible options. This is just *N* choose *K* for each lemma, where *N* is the number of times the given lemma appears in the sentence and *K* the number of times it appears in the MWE. These tuples will usually be only one element, except in MWEs that have repeated constituents. 
+```python
+candidate_word_combos = [
+    list(combinations(lemma_to_tokens[lemma], lemma_counter[lemma]))
+    for lemma in lemma_counter
+]
+```
+Running this on our example input gives us:
+```python
+[
+    [
+        (Token(form='ran', idx=1, lemma='run'),)
+    ], 
+    [
+        (Token(form='down', idx=2, lemma='down'),), 
+        (Token(form='down', idx=7, lemma='down'),)
+    ]
+]
+```
+
+Finally, we take the cartesian product of each of these lists of tuples, and unpack the tuples. Because each tuple represents possible ways of choosing a given lemma, this is effectively looking at all combinations of ways to choose words for each lemma, and gives us our original objective - every combination of words that could constitute this MWE. Finally, we sort the results to make sure that the resulting tokens are in order. 
+```python
+mwe_combinations = {
+    tuple(x for y in p for x in y) 
+    for p in product(*candidate_word_combos)
+}
+
+sorted_mwe_combinations = [
+    sorted(raw_combo, key=lambda t: t.idx) 
+    for raw_combo in mwe_combinations
+]
+```
+The final result:
+```python
+[
+    [
+        Token(form='ran', idx=1, lemma='run'), 
+        Token(form='down', idx=2, lemma='down')
+    ], 
+    [
+        Token(form='ran', idx=1, lemma='run'), 
+        Token(form='down', idx=7, lemma='down')
+    ]
+]
+
+```
+
+
+&nbsp; 
 
 <hr/>
 

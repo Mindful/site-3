@@ -59,7 +59,7 @@ code block */
 }
 
 
-.blogpost > * > a {
+.blogpost a {
     @apply underline text-green
 }
 
