@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<link rel="stylesheet" href="https://joshuatanner.dev/styles/styles.css" />
+	<link rel="icon" type="image/x-icon" href="/images/favicon.png">
+</head>
+<head>
+	<meta charset="UTF-8">
+	<title>
+		
+		List of blog posts
+		
+	</title>
+</head>
+<main>
+	<nav class="flex bg-green p-0 h-16" style="box-shadow: 0px 3px 10px 0px #4d4d4d;">
+		<div class="flex items-center flex-shrink-0 text-white mr-6 ml-6">
+			<!-- Replace LangLink with a tag -->
+			<a href="https://joshuatanner.dev/ja/" class="text-white"><span>Joshua Tanner</span></a>
+		</div>
+		<div style="border-left: 1px solid white; height: 100%;" class="mr-6"></div>
+
+		<div class="flex w-full items-center text-white">
+
+			<div class="hidden sm:flex">
+				<a href='https://joshuatanner.dev/ja/translation/' class="text-white mr-4">TRANSLATION</a>
+				<a href='https://joshuatanner.dev/ja/blog/' class="text-white">BLOG</a>
+			</div>
+
+			<div class="relative content-center -ml-4 sm:hidden">
+				<input type="checkbox" id="sortbox" class="toggler"/>
+				<div class="hamburger"><div></div></div>
+
+				<div id="sortboxmenu" class="absolute mt-2 right-1 top-full min-w-max shadow rounded hidden bg-gray-300 border border-gray-400 transition delay-75 ease-in-out z-10">
+					<ul class="block text-right text-gray-900">
+						<li><a href='/translation' class="block px-3 py-2 bg-green text-white">TRANSLATION</a></li>
+						<li><a href='/blog' class="block px-3 py-2 bg-green text-white">BLOG</a></li>
+					</ul>
+				</div>
+			</div>
+
+			
+				
+					
+				
+				<!-- If the current page is in Japanese, show link to English -->
+				<a href="https://joshuatanner.dev/blog" class="absolute md:right-8 right-4">English</a>
+			
+
+		</div>
+	</nav>
+
+	<body>
+
+		<div class="flex md:flex-row flex-col px-5 md:pr-0 items-center md:items-start">
+			<div class="flex m-10 w-full flex-col">
+				
+  <!-- If you are using pagination, section.pages will be empty. You need to use the paginator object -->  
+  
+    
+  <div class="flex p-8 sm:p-14 bg-white shadowed w-full flex-col mb-6">
+    <header class="text-3xl md:text-4xl my-4">
+	    
+	      <a href="https://joshuatanner.dev/ja/blog/blog-mwe-lookup/">複数語表現検索：多重集合の部分集合検索</a>
+		
+    </header>
+    <span class="mb-2">2024-03-23</span>
+    <div class="blogpost">
+      <p>最近、文中の<a href="https://en.wikipedia.org/wiki/Multiword_expression">複数語表現</a>（MWE）を見つける手法を考えるのにかなりの時間を使っています。MWEの定義は曖昧であり、定義によってはMWEというカテゴリーに何が入るかも変わりますが、今日はそれを脇に置いてMWEの自動検出について話したいと思います。</p>
+<p>MWE検出の方法はさまざまですが、個人的に辞書ベースのものが好きです。簡単にいうと、可能なMWEがたくさんあるリストを与えられて、そのうちのどれが文中に実際にあるかを割り出す手法です。これは以下のようなパイプラインとして表現できます：</p>
+<ol>
+<li>文中に存在し得るMWE（「可能なMWE」）を辞書から検索します。辞書が上手く構造化されていないとこの処理が遅いので、この記事の大部分はこれを効率的に行う方法についてです。</li>
+<li>検索されたMWEを、可能なMWEに相当する文中の構成素の組み合わせから成る具体的な「候補」に対応付けます。検索されたMWEに相当する単語の各組み合わせを全て見つけることさえできれば可能ですが、これについては記事の最後に説明します。</li>
+<li>各「候補」が実際にMWEであるかどうかを判断します。つまり、その構成素が慣用的/非構成的な意味を持つかどうかです。こうするには文脈における意味を判断できるシステムが必要であり、たいていの場合は機械学習に基づいた手法になります。昨年、その方法の1つについて<a href="https://aclanthology.org/2023.findings-emnlp.14/">論文</a>を出版しましたが、この記事で詳しく解説するには手法が多くて複雑すぎます。</li>
+</ol>
+<p><img src="https://joshuatanner.dev/ja/blog/blog-mwe-lookup/poster_sentence.png" alt="例文" /></p>
+<p>上記の文に対して、この3つのステップは以下のようになります：</p>
+<ol>
+<li><code>run_down</code>, <code>run_over</code>, <code>fall_down</code>, <code>fall_over</code>を検索して可能なMWEとして取得します。</li>
+<li>これらのMWEを文中の単語の候補組み合わせに対応付ます。（上図の通り）</li>
+<li>候補をフィルターして、実際にMWEを構成する候補のみを保持します。<code>fall_down</code>と<code>run_over</code>は明らかに間違っているし、<code>run_down</code>というMWEは「（車両で）人をひく」のような意味なので、<code>fall_over</code>だけが残ります。</li>
+</ol>
+<p>1つのMWEに対して候補組み合わせがある場合もあります。たとえば、最後の<code>down</code>を<code>over</code>に置き換えて「I ran down the stairs and fell down」にすると、可能な<code>run_down</code>のインスタンスが2つあります。1つ目は<code>ran</code>と最初の<code>down</code>であり、2つ目は<code>ran</code>と二番目の<code>down</code>です。この問題に対応しやすくなるため、ステップ＃1と＃2を分割して行うのがおすすめです。</p>
+<h2 id="ke-neng-namwenojian-suo">可能なMWEの検索</h2>
+<p>さて、主題のステップ＃1である可能なMWEの検索について語りましょう。MWEの中に、可能な構成が制限されているものもありますが、動詞のMWEも考慮に入れると制限がほとんどありません。まず<code>She put her beloved dog down</code>の<code>put_down</code>のように、構成素が連続している必要はありません。さらに<code>the beans have been spilled</code>の<code>spill_the_beans</code>のように、順序さえ保証されていません。最後に、MWEの構成素が重複しないとも限りません。例として<code>face_to_face</code>があります。</p>
+<p>構成素が順序に従う必要がなく、重複しない保証もないことを考えると、可能なMWEの検索という問題は次のように形式化できます。入力文の単語の多重集合<em>S</em>と、可能なMWEごとの多重集合を含む集合<em>L</em>が与えられた場合、<em>S</em>の部分集合でありかつ<em>L</em>に入る要素を見つけることです。</p>
+<p><img src="https://joshuatanner.dev/ja/blog/blog-mwe-lookup/equation.svg" alt="MWE取得方程式" /></p>
+<p>その結果、<em>M</em>がMWEごとの多重集合の平均要素数とし、最悪計算量は*O(M * |L|)*というかなりひどい上限です。辞書内の全てのMWEが文中の単語の部分集合であるか否かを調べる単純な手法、一文ごとに全てMWE多重集合を処理することになってしまうので、非常に遅くなります。</p>
+<pre data-lang="python" style="background-color:#2b303b;color:#c0c5ce;" class="language-python "><code class="language-python" data-lang="python"><span style="color:#b48ead;">class </span><span style="color:#ebcb8b;">NaiveApproach</span><span style="color:#eff1f5;">:
+</span><span>    </span><span style="color:#b48ead;">def </span><span style="color:#96b5b4;">__init__</span><span>(</span><span style="color:#bf616a;">self</span><span>):
+</span><span>        </span><span style="color:#bf616a;">self</span><span>.data = [
+</span><span>            (mwe[&#39;</span><span style="color:#a3be8c;">lemma</span><span>&#39;], </span><span style="color:#bf616a;">Counter</span><span>(mwe[&#39;</span><span style="color:#a3be8c;">constituents</span><span>&#39;]))
+</span><span>            </span><span style="color:#b48ead;">for </span><span>mwe </span><span style="color:#b48ead;">in </span><span style="color:#bf616a;">get_mwes</span><span>()
+</span><span>        ]
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">def </span><span style="color:#8fa1b3;">search</span><span>(</span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">words</span><span>: list[str]) -&gt; list[str]:
+</span><span>        word_counter = </span><span style="color:#bf616a;">Counter</span><span>(words)
+</span><span>        </span><span style="color:#b48ead;">return </span><span>[
+</span><span>            mwe </span><span style="color:#b48ead;">for </span><span>mwe, constituents </span><span style="color:#b48ead;">in </span><span style="color:#bf616a;">self</span><span>.data
+</span><span>            </span><span style="color:#b48ead;">if </span><span style="color:#96b5b4;">all</span><span>(
+</span><span>                word_counter[constituent] &gt;= count
+</span><span>                </span><span style="color:#b48ead;">for </span><span>constituent, count </span><span style="color:#b48ead;">in </span><span>constituents.</span><span style="color:#bf616a;">items</span><span>()
+</span><span>            )
+</span><span>        ]
+</span></code></pre>
+<p>このコードは私のラップトップで1,000文を処理するのに平均して28秒かかります。しかし、<a href="https://en.wikipedia.org/wiki/trie">トライ木</a>を使用することでこれを大幅に高速化できます<sup class="footnote-reference"><a href="#1">1</a></sup>。トライ木は通常、文字から構築されるものですが、文字列ではなくて単語列を扱っているため、この場合は単語から構築することができます。</p>
+<p><img src="https://joshuatanner.dev/ja/blog/blog-mwe-lookup/mwe_trie.png" alt="MWE trie" /></p>
+<p>MWEのトライ木を辞書として使用すると、枝を下り続けるのに文中にない単語が必要になったときに中断する深さ優先探索で候補で可能なMWEを集めることができます。つまり、文中の単語の部分集合であるトライ木の部分のみをたどります。</p>
+<pre data-lang="python" style="background-color:#2b303b;color:#c0c5ce;" class="language-python "><code class="language-python" data-lang="python"><span style="color:#b48ead;">class </span><span style="color:#ebcb8b;">TrieNode</span><span style="color:#eff1f5;">:
+</span><span>    __slots__ = [&#39;</span><span style="color:#a3be8c;">lemma</span><span>&#39;, &#39;</span><span style="color:#a3be8c;">children</span><span>&#39;]
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">def </span><span style="color:#96b5b4;">__init__</span><span>(</span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">lemma</span><span>: Optional[str]):
+</span><span>    	</span><span style="color:#65737e;"># lemma represents a possible MWE that terminates at this node
+</span><span>        </span><span style="color:#bf616a;">self</span><span>.lemma = lemma  
+</span><span>        </span><span style="color:#bf616a;">self</span><span>.children = {}
+</span><span>
+</span><span>
+</span><span style="color:#b48ead;">class </span><span style="color:#ebcb8b;">Trie</span><span style="color:#eff1f5;">:
+</span><span>    </span><span style="color:#b48ead;">def </span><span style="color:#96b5b4;">__init__</span><span>(</span><span style="color:#bf616a;">self</span><span>):
+</span><span>        </span><span style="color:#bf616a;">self</span><span>.tree = </span><span style="color:#bf616a;">self</span><span>.</span><span style="color:#bf616a;">_build_tree</span><span>(</span><span style="color:#bf616a;">get_mwes</span><span>())
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">def </span><span style="color:#8fa1b3;">_build_tree</span><span>(</span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">mwes</span><span>: list[dict[str, str]]):
+</span><span>        root = </span><span style="color:#bf616a;">TrieNode</span><span>(</span><span style="color:#d08770;">None</span><span>)
+</span><span>        </span><span style="color:#b48ead;">for </span><span>mwe </span><span style="color:#b48ead;">in </span><span>mwes:
+</span><span>            curlevel = root
+</span><span>            </span><span style="color:#b48ead;">for </span><span>word </span><span style="color:#b48ead;">in </span><span>mwe[&#39;</span><span style="color:#a3be8c;">constituents</span><span>&#39;]:
+</span><span>                </span><span style="color:#b48ead;">if </span><span>word not in curlevel.children:
+</span><span>                    curlevel.children[word] = </span><span style="color:#bf616a;">TrieNode</span><span>(</span><span style="color:#d08770;">None</span><span>)
+</span><span>                curlevel = curlevel.children[word]
+</span><span>
+</span><span>            curlevel.lemma = mwe[&#39;</span><span style="color:#a3be8c;">lemma</span><span>&#39;]
+</span><span>
+</span><span>        </span><span style="color:#b48ead;">return </span><span>root
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">def </span><span style="color:#8fa1b3;">search</span><span>(</span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">sentence</span><span>: list[str]) -&gt; list[str]:
+</span><span>        counter = </span><span style="color:#bf616a;">Counter</span><span>(sentence)
+</span><span>        results = []
+</span><span>        </span><span style="color:#bf616a;">self</span><span>.</span><span style="color:#bf616a;">_search</span><span>(</span><span style="color:#bf616a;">self</span><span>.tree, counter, results)
+</span><span>        </span><span style="color:#b48ead;">return </span><span>results
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">def </span><span style="color:#8fa1b3;">_search</span><span>(</span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">cur_node</span><span>: TrieNode, </span><span style="color:#bf616a;">counter</span><span>: Counter, </span><span style="color:#bf616a;">results</span><span>: list):
+</span><span>        possible_next_constituents = [c </span><span style="color:#b48ead;">for </span><span>c </span><span style="color:#b48ead;">in </span><span>counter </span><span style="color:#b48ead;">if </span><span>counter[c] &gt; </span><span style="color:#d08770;">0 </span><span>and c in cur_node.children]
+</span><span>
+</span><span>        </span><span style="color:#b48ead;">for </span><span>constituent </span><span style="color:#b48ead;">in </span><span>possible_next_constituents:
+</span><span>            next_node = cur_node.children[constituent]
+</span><span>            counter[constituent] -= </span><span style="color:#d08770;">1
+</span><span>            </span><span style="color:#b48ead;">if </span><span>next_node.lemma is not </span><span style="color:#d08770;">None</span><span>:
+</span><span>                results.</span><span style="color:#bf616a;">append</span><span>(next_node.lemma)
+</span><span>            </span><span style="color:#bf616a;">self</span><span>.</span><span style="color:#bf616a;">_search</span><span>(next_node, counter, results)
+</span><span>            counter[constituent] += </span><span style="color:#d08770;">1
+</span></code></pre>
+<hr />
+<h1 id="sok-kihagong-shi-zhong-he-yi-zhong">続きは工事中（和訳中）</h1>
+
+    </div>
+  </div>
+
+  
+    
+  <div class="flex p-8 sm:p-14 bg-white shadowed w-full flex-col mb-6">
+    <header class="text-3xl md:text-4xl my-4">
+	    
+	      <a href="https://joshuatanner.dev/ja/blog/blog-promenade/">生研ニュースの記事を執筆しました</a>
+		
+    </header>
+    <span class="mb-2">2021-05-09</span>
+    <div class="blogpost">
+      <p>私が現在所属している生産技術研究所は、2ヶ月に1回<a href="https://www.iis.u-tokyo.ac.jp/ja/about/publication/seiken_news/">生研ニュース</a>という広報誌のようなものを出版していますが、4月号の「PROMENADE」という海外から来ている研究員が書く枠の記事を執筆しました。日本語で執筆と言えるようなものは初めてなので、記念に保管しておきたいと思いました。主に来日とそれからの生活の話ですが、記事に載っている「生研ニュース#189」へのリンクは下に載せているのでもし興味があれば読んでみてください。</p>
+<p>ちなみに、記事の文頭に出てくることわざは日本語と<a href="https://ja.wikipedia.org/wiki/%E3%82%A4%E3%83%87%E3%82%A3%E3%83%83%E3%82%B7%E3%83%A5%E8%AA%9E">イディッシュ語</a>（東欧のユダヤ人の言語）で書いていますが、実は英語で「Man makes plans and god laughs」として親に教えてもらったもので、この記事の下調べで初めてそれがイディッシュ語のことわざだと知りました。ご先祖様が東欧ユダヤ人なのはもちろん知っていましたが、普段から使っている英語にイディッシュ語の直訳があることに驚き、少しだけ自分のルーツを感じました。</p>
+<h2 id="ji-shi-hakokodeyue-lan-dekimasu"><a href="https://issuu.com/utokyo-iis/docs/iisnews189/26">記事はここで閲覧できます</a></h2>
+
+    </div>
+  </div>
+
+  
+
+			</div>
+
+
+
+			
+			<div class="flex flex-row md:flex-col md:shrink-[0.15] bg-transparent md:h-full md:mr-5 md:mt-10 bg-transparent md:py-0 -my-5 space-x-8 md:space-x-0">
+				<a href="https://github.com/Mindful">
+					<img src="/images/social-github.svg" alt="github" class="w-auto h-auto md:w-2/3 md:h-2/3 pt-2 pb-2"/>
+				</a>
+				<a href="https://www.linkedin.com/in/joshuatanner2">
+					<img src="/images/social-linkedin.svg" alt="linkedin" class="w-auto h-auto md:w-2/3 md:h-2/3 pt-2 pb-2"/>
+				</a>
+				<a href="https://scholar.google.com/citations?user=OqYthY0AAAAJ&h">
+					<img src="/images/social-scholar.svg" alt="google scholar" class="w-auto h-auto md:w-2/3 md:h-2/3 pt-2 pb-2"/>
+				</a>
+				<a href="https://stackexchange.com/users/5319885/mindful">
+					<img src="/images/social-se.svg" alt="stack exchange" class="w-auto h-auto md:w-2/3 md:h-2/3 pt-2 pb-2"/>
+				</a>
+				<a href="https://twitter.com/mindful_jt">
+					<img src="/images/social-twitter.svg" alt="twitter" class="w-auto h-auto md:w-2/3 md:h-2/3 pt-2 pb-2"/>
+				</a>
+				<a href="mailto:mindful.jt@gmail.com">
+					<img src="/images/social-email.svg" alt="email" class="w-auto h-auto md:w-2/3 md:h-2/3 pt-2 pb-2"/>
+				</a>
+			</div>
+			
+
+		</div>
+
+	</body>
+</main>
+</html>

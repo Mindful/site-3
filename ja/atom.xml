@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ja">
+    <title></title>
+    <link href="https://joshuatanner.dev/ja/atom.xml" rel="self" type="application/atom+xml"/>
+    <link href="https://joshuatanner.dev/"/>
+    <generator uri="https://www.getzola.org/">Zola</generator>
+    <updated>2024-03-23T00:00:00+00:00</updated>
+    <id>https://joshuatanner.dev/ja/atom.xml</id>
+    <entry xml:lang="ja">
+        <title>複数語表現検索：多重集合の部分集合検索</title>
+        <published>2024-03-23T00:00:00+00:00</published>
+        <updated>2024-03-23T00:00:00+00:00</updated>
+        <author>
+          <name>Unknown</name>
+        </author>
+        <link rel="alternate" href="https://joshuatanner.dev/ja/blog/blog-mwe-lookup/" type="text/html"/>
+        <id>https://joshuatanner.dev/ja/blog/blog-mwe-lookup/</id>
+        
+        <content type="html">&lt;p&gt;最近、文中の&lt;a href=&quot;https:&#x2F;&#x2F;en.wikipedia.org&#x2F;wiki&#x2F;Multiword_expression&quot;&gt;複数語表現&lt;&#x2F;a&gt;（MWE）を見つける手法を考えるのにかなりの時間を使っています。MWEの定義は曖昧であり、定義によってはMWEというカテゴリーに何が入るかも変わりますが、今日はそれを脇に置いてMWEの自動検出について話したいと思います。&lt;&#x2F;p&gt;
+&lt;p&gt;MWE検出の方法はさまざまですが、個人的に辞書ベースのものが好きです。簡単にいうと、可能なMWEがたくさんあるリストを与えられて、そのうちのどれが文中に実際にあるかを割り出す手法です。これは以下のようなパイプラインとして表現できます：&lt;&#x2F;p&gt;
+&lt;ol&gt;
+&lt;li&gt;文中に存在し得るMWE（「可能なMWE」）を辞書から検索します。辞書が上手く構造化されていないとこの処理が遅いので、この記事の大部分はこれを効率的に行う方法についてです。&lt;&#x2F;li&gt;
+&lt;li&gt;検索されたMWEを、可能なMWEに相当する文中の構成素の組み合わせから成る具体的な「候補」に対応付けます。検索されたMWEに相当する単語の各組み合わせを全て見つけることさえできれば可能ですが、これについては記事の最後に説明します。&lt;&#x2F;li&gt;
+&lt;li&gt;各「候補」が実際にMWEであるかどうかを判断します。つまり、その構成素が慣用的&#x2F;非構成的な意味を持つかどうかです。こうするには文脈における意味を判断できるシステムが必要であり、たいていの場合は機械学習に基づいた手法になります。昨年、その方法の1つについて&lt;a href=&quot;https:&#x2F;&#x2F;aclanthology.org&#x2F;2023.findings-emnlp.14&#x2F;&quot;&gt;論文&lt;&#x2F;a&gt;を出版しましたが、この記事で詳しく解説するには手法が多くて複雑すぎます。&lt;&#x2F;li&gt;
+&lt;&#x2F;ol&gt;
+&lt;p&gt;&lt;img src=&quot;https:&#x2F;&#x2F;joshuatanner.dev&#x2F;ja&#x2F;blog&#x2F;blog-mwe-lookup&#x2F;poster_sentence.png&quot; alt=&quot;例文&quot; &#x2F;&gt;&lt;&#x2F;p&gt;
+&lt;p&gt;上記の文に対して、この3つのステップは以下のようになります：&lt;&#x2F;p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;code&gt;run_down&lt;&#x2F;code&gt;, &lt;code&gt;run_over&lt;&#x2F;code&gt;, &lt;code&gt;fall_down&lt;&#x2F;code&gt;, &lt;code&gt;fall_over&lt;&#x2F;code&gt;を検索して可能なMWEとして取得します。&lt;&#x2F;li&gt;
+&lt;li&gt;これらのMWEを文中の単語の候補組み合わせに対応付ます。（上図の通り）&lt;&#x2F;li&gt;
+&lt;li&gt;候補をフィルターして、実際にMWEを構成する候補のみを保持します。&lt;code&gt;fall_down&lt;&#x2F;code&gt;と&lt;code&gt;run_over&lt;&#x2F;code&gt;は明らかに間違っているし、&lt;code&gt;run_down&lt;&#x2F;code&gt;というMWEは「（車両で）人をひく」のような意味なので、&lt;code&gt;fall_over&lt;&#x2F;code&gt;だけが残ります。&lt;&#x2F;li&gt;
+&lt;&#x2F;ol&gt;
+&lt;p&gt;1つのMWEに対して候補組み合わせがある場合もあります。たとえば、最後の&lt;code&gt;down&lt;&#x2F;code&gt;を&lt;code&gt;over&lt;&#x2F;code&gt;に置き換えて「I ran down the stairs and fell down」にすると、可能な&lt;code&gt;run_down&lt;&#x2F;code&gt;のインスタンスが2つあります。1つ目は&lt;code&gt;ran&lt;&#x2F;code&gt;と最初の&lt;code&gt;down&lt;&#x2F;code&gt;であり、2つ目は&lt;code&gt;ran&lt;&#x2F;code&gt;と二番目の&lt;code&gt;down&lt;&#x2F;code&gt;です。この問題に対応しやすくなるため、ステップ＃1と＃2を分割して行うのがおすすめです。&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;ke-neng-namwenojian-suo&quot;&gt;可能なMWEの検索&lt;&#x2F;h2&gt;
+&lt;p&gt;さて、主題のステップ＃1である可能なMWEの検索について語りましょう。MWEの中に、可能な構成が制限されているものもありますが、動詞のMWEも考慮に入れると制限がほとんどありません。まず&lt;code&gt;She put her beloved dog down&lt;&#x2F;code&gt;の&lt;code&gt;put_down&lt;&#x2F;code&gt;のように、構成素が連続している必要はありません。さらに&lt;code&gt;the beans have been spilled&lt;&#x2F;code&gt;の&lt;code&gt;spill_the_beans&lt;&#x2F;code&gt;のように、順序さえ保証されていません。最後に、MWEの構成素が重複しないとも限りません。例として&lt;code&gt;face_to_face&lt;&#x2F;code&gt;があります。&lt;&#x2F;p&gt;
+&lt;p&gt;構成素が順序に従う必要がなく、重複しない保証もないことを考えると、可能なMWEの検索という問題は次のように形式化できます。入力文の単語の多重集合&lt;em&gt;S&lt;&#x2F;em&gt;と、可能なMWEごとの多重集合を含む集合&lt;em&gt;L&lt;&#x2F;em&gt;が与えられた場合、&lt;em&gt;S&lt;&#x2F;em&gt;の部分集合でありかつ&lt;em&gt;L&lt;&#x2F;em&gt;に入る要素を見つけることです。&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;img src=&quot;https:&#x2F;&#x2F;joshuatanner.dev&#x2F;ja&#x2F;blog&#x2F;blog-mwe-lookup&#x2F;equation.svg&quot; alt=&quot;MWE取得方程式&quot; &#x2F;&gt;&lt;&#x2F;p&gt;
+&lt;p&gt;その結果、&lt;em&gt;M&lt;&#x2F;em&gt;がMWEごとの多重集合の平均要素数とし、最悪計算量は*O(M * |L|)*というかなりひどい上限です。辞書内の全てのMWEが文中の単語の部分集合であるか否かを調べる単純な手法、一文ごとに全てMWE多重集合を処理することになってしまうので、非常に遅くなります。&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;python&quot; style=&quot;background-color:#2b303b;color:#c0c5ce;&quot; class=&quot;language-python &quot;&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;class &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ebcb8b;&quot;&gt;NaiveApproach&lt;&#x2F;span&gt;&lt;span style=&quot;color:#eff1f5;&quot;&gt;:
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;def &lt;&#x2F;span&gt;&lt;span style=&quot;color:#96b5b4;&quot;&gt;__init__&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;):
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.data = [
+&lt;&#x2F;span&gt;&lt;span&gt;            (mwe[&amp;#39;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;lemma&lt;&#x2F;span&gt;&lt;span&gt;&amp;#39;], &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;Counter&lt;&#x2F;span&gt;&lt;span&gt;(mwe[&amp;#39;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;constituents&lt;&#x2F;span&gt;&lt;span&gt;&amp;#39;]))
+&lt;&#x2F;span&gt;&lt;span&gt;            &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;for &lt;&#x2F;span&gt;&lt;span&gt;mwe &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;in &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;get_mwes&lt;&#x2F;span&gt;&lt;span&gt;()
+&lt;&#x2F;span&gt;&lt;span&gt;        ]
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;def &lt;&#x2F;span&gt;&lt;span style=&quot;color:#8fa1b3;&quot;&gt;search&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;words&lt;&#x2F;span&gt;&lt;span&gt;: list[str]) -&amp;gt; list[str]:
+&lt;&#x2F;span&gt;&lt;span&gt;        word_counter = &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;Counter&lt;&#x2F;span&gt;&lt;span&gt;(words)
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;return &lt;&#x2F;span&gt;&lt;span&gt;[
+&lt;&#x2F;span&gt;&lt;span&gt;            mwe &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;for &lt;&#x2F;span&gt;&lt;span&gt;mwe, constituents &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;in &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.data
+&lt;&#x2F;span&gt;&lt;span&gt;            &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;if &lt;&#x2F;span&gt;&lt;span style=&quot;color:#96b5b4;&quot;&gt;all&lt;&#x2F;span&gt;&lt;span&gt;(
+&lt;&#x2F;span&gt;&lt;span&gt;                word_counter[constituent] &amp;gt;= count
+&lt;&#x2F;span&gt;&lt;span&gt;                &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;for &lt;&#x2F;span&gt;&lt;span&gt;constituent, count &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;in &lt;&#x2F;span&gt;&lt;span&gt;constituents.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;items&lt;&#x2F;span&gt;&lt;span&gt;()
+&lt;&#x2F;span&gt;&lt;span&gt;            )
+&lt;&#x2F;span&gt;&lt;span&gt;        ]
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;p&gt;このコードは私のラップトップで1,000文を処理するのに平均して28秒かかります。しかし、&lt;a href=&quot;https:&#x2F;&#x2F;en.wikipedia.org&#x2F;wiki&#x2F;trie&quot;&gt;トライ木&lt;&#x2F;a&gt;を使用することでこれを大幅に高速化できます&lt;sup class=&quot;footnote-reference&quot;&gt;&lt;a href=&quot;#1&quot;&gt;1&lt;&#x2F;a&gt;&lt;&#x2F;sup&gt;。トライ木は通常、文字から構築されるものですが、文字列ではなくて単語列を扱っているため、この場合は単語から構築することができます。&lt;&#x2F;p&gt;
+&lt;p&gt;&lt;img src=&quot;https:&#x2F;&#x2F;joshuatanner.dev&#x2F;ja&#x2F;blog&#x2F;blog-mwe-lookup&#x2F;mwe_trie.png&quot; alt=&quot;MWE trie&quot; &#x2F;&gt;&lt;&#x2F;p&gt;
+&lt;p&gt;MWEのトライ木を辞書として使用すると、枝を下り続けるのに文中にない単語が必要になったときに中断する深さ優先探索で候補で可能なMWEを集めることができます。つまり、文中の単語の部分集合であるトライ木の部分のみをたどります。&lt;&#x2F;p&gt;
+&lt;pre data-lang=&quot;python&quot; style=&quot;background-color:#2b303b;color:#c0c5ce;&quot; class=&quot;language-python &quot;&gt;&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;class &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ebcb8b;&quot;&gt;TrieNode&lt;&#x2F;span&gt;&lt;span style=&quot;color:#eff1f5;&quot;&gt;:
+&lt;&#x2F;span&gt;&lt;span&gt;    __slots__ = [&amp;#39;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;lemma&lt;&#x2F;span&gt;&lt;span&gt;&amp;#39;, &amp;#39;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;children&lt;&#x2F;span&gt;&lt;span&gt;&amp;#39;]
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;def &lt;&#x2F;span&gt;&lt;span style=&quot;color:#96b5b4;&quot;&gt;__init__&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;lemma&lt;&#x2F;span&gt;&lt;span&gt;: Optional[str]):
+&lt;&#x2F;span&gt;&lt;span&gt;    	&lt;&#x2F;span&gt;&lt;span style=&quot;color:#65737e;&quot;&gt;# lemma represents a possible MWE that terminates at this node
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.lemma = lemma  
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.children = {}
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;class &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ebcb8b;&quot;&gt;Trie&lt;&#x2F;span&gt;&lt;span style=&quot;color:#eff1f5;&quot;&gt;:
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;def &lt;&#x2F;span&gt;&lt;span style=&quot;color:#96b5b4;&quot;&gt;__init__&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;):
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.tree = &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;_build_tree&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;get_mwes&lt;&#x2F;span&gt;&lt;span&gt;())
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;def &lt;&#x2F;span&gt;&lt;span style=&quot;color:#8fa1b3;&quot;&gt;_build_tree&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;mwes&lt;&#x2F;span&gt;&lt;span&gt;: list[dict[str, str]]):
+&lt;&#x2F;span&gt;&lt;span&gt;        root = &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;TrieNode&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#d08770;&quot;&gt;None&lt;&#x2F;span&gt;&lt;span&gt;)
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;for &lt;&#x2F;span&gt;&lt;span&gt;mwe &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;in &lt;&#x2F;span&gt;&lt;span&gt;mwes:
+&lt;&#x2F;span&gt;&lt;span&gt;            curlevel = root
+&lt;&#x2F;span&gt;&lt;span&gt;            &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;for &lt;&#x2F;span&gt;&lt;span&gt;word &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;in &lt;&#x2F;span&gt;&lt;span&gt;mwe[&amp;#39;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;constituents&lt;&#x2F;span&gt;&lt;span&gt;&amp;#39;]:
+&lt;&#x2F;span&gt;&lt;span&gt;                &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;if &lt;&#x2F;span&gt;&lt;span&gt;word not in curlevel.children:
+&lt;&#x2F;span&gt;&lt;span&gt;                    curlevel.children[word] = &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;TrieNode&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#d08770;&quot;&gt;None&lt;&#x2F;span&gt;&lt;span&gt;)
+&lt;&#x2F;span&gt;&lt;span&gt;                curlevel = curlevel.children[word]
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;            curlevel.lemma = mwe[&amp;#39;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a3be8c;&quot;&gt;lemma&lt;&#x2F;span&gt;&lt;span&gt;&amp;#39;]
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;return &lt;&#x2F;span&gt;&lt;span&gt;root
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;def &lt;&#x2F;span&gt;&lt;span style=&quot;color:#8fa1b3;&quot;&gt;search&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;sentence&lt;&#x2F;span&gt;&lt;span&gt;: list[str]) -&amp;gt; list[str]:
+&lt;&#x2F;span&gt;&lt;span&gt;        counter = &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;Counter&lt;&#x2F;span&gt;&lt;span&gt;(sentence)
+&lt;&#x2F;span&gt;&lt;span&gt;        results = []
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;_search&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.tree, counter, results)
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;return &lt;&#x2F;span&gt;&lt;span&gt;results
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;def &lt;&#x2F;span&gt;&lt;span style=&quot;color:#8fa1b3;&quot;&gt;_search&lt;&#x2F;span&gt;&lt;span&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;cur_node&lt;&#x2F;span&gt;&lt;span&gt;: TrieNode, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;counter&lt;&#x2F;span&gt;&lt;span&gt;: Counter, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;results&lt;&#x2F;span&gt;&lt;span&gt;: list):
+&lt;&#x2F;span&gt;&lt;span&gt;        possible_next_constituents = [c &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;for &lt;&#x2F;span&gt;&lt;span&gt;c &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;in &lt;&#x2F;span&gt;&lt;span&gt;counter &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;if &lt;&#x2F;span&gt;&lt;span&gt;counter[c] &amp;gt; &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d08770;&quot;&gt;0 &lt;&#x2F;span&gt;&lt;span&gt;and c in cur_node.children]
+&lt;&#x2F;span&gt;&lt;span&gt;
+&lt;&#x2F;span&gt;&lt;span&gt;        &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;for &lt;&#x2F;span&gt;&lt;span&gt;constituent &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;in &lt;&#x2F;span&gt;&lt;span&gt;possible_next_constituents:
+&lt;&#x2F;span&gt;&lt;span&gt;            next_node = cur_node.children[constituent]
+&lt;&#x2F;span&gt;&lt;span&gt;            counter[constituent] -= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d08770;&quot;&gt;1
+&lt;&#x2F;span&gt;&lt;span&gt;            &lt;&#x2F;span&gt;&lt;span style=&quot;color:#b48ead;&quot;&gt;if &lt;&#x2F;span&gt;&lt;span&gt;next_node.lemma is not &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d08770;&quot;&gt;None&lt;&#x2F;span&gt;&lt;span&gt;:
+&lt;&#x2F;span&gt;&lt;span&gt;                results.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;append&lt;&#x2F;span&gt;&lt;span&gt;(next_node.lemma)
+&lt;&#x2F;span&gt;&lt;span&gt;            &lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;self&lt;&#x2F;span&gt;&lt;span&gt;.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#bf616a;&quot;&gt;_search&lt;&#x2F;span&gt;&lt;span&gt;(next_node, counter, results)
+&lt;&#x2F;span&gt;&lt;span&gt;            counter[constituent] += &lt;&#x2F;span&gt;&lt;span style=&quot;color:#d08770;&quot;&gt;1
+&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
+&lt;hr &#x2F;&gt;
+&lt;h1 id=&quot;sok-kihagong-shi-zhong-he-yi-zhong&quot;&gt;続きは工事中（和訳中）&lt;&#x2F;h1&gt;
+</content>
+        
+    </entry>
+    <entry xml:lang="ja">
+        <title>生研ニュースの記事を執筆しました</title>
+        <published>2021-05-09T00:00:00+00:00</published>
+        <updated>2021-05-09T00:00:00+00:00</updated>
+        <author>
+          <name>Unknown</name>
+        </author>
+        <link rel="alternate" href="https://joshuatanner.dev/ja/blog/blog-promenade/" type="text/html"/>
+        <id>https://joshuatanner.dev/ja/blog/blog-promenade/</id>
+        
+        <content type="html">&lt;p&gt;私が現在所属している生産技術研究所は、2ヶ月に1回&lt;a href=&quot;https:&#x2F;&#x2F;www.iis.u-tokyo.ac.jp&#x2F;ja&#x2F;about&#x2F;publication&#x2F;seiken_news&#x2F;&quot;&gt;生研ニュース&lt;&#x2F;a&gt;という広報誌のようなものを出版していますが、4月号の「PROMENADE」という海外から来ている研究員が書く枠の記事を執筆しました。日本語で執筆と言えるようなものは初めてなので、記念に保管しておきたいと思いました。主に来日とそれからの生活の話ですが、記事に載っている「生研ニュース#189」へのリンクは下に載せているのでもし興味があれば読んでみてください。&lt;&#x2F;p&gt;
+&lt;p&gt;ちなみに、記事の文頭に出てくることわざは日本語と&lt;a href=&quot;https:&#x2F;&#x2F;ja.wikipedia.org&#x2F;wiki&#x2F;%E3%82%A4%E3%83%87%E3%82%A3%E3%83%83%E3%82%B7%E3%83%A5%E8%AA%9E&quot;&gt;イディッシュ語&lt;&#x2F;a&gt;（東欧のユダヤ人の言語）で書いていますが、実は英語で「Man makes plans and god laughs」として親に教えてもらったもので、この記事の下調べで初めてそれがイディッシュ語のことわざだと知りました。ご先祖様が東欧ユダヤ人なのはもちろん知っていましたが、普段から使っている英語にイディッシュ語の直訳があることに驚き、少しだけ自分のルーツを感じました。&lt;&#x2F;p&gt;
+&lt;h2 id=&quot;ji-shi-hakokodeyue-lan-dekimasu&quot;&gt;&lt;a href=&quot;https:&#x2F;&#x2F;issuu.com&#x2F;utokyo-iis&#x2F;docs&#x2F;iisnews189&#x2F;26&quot;&gt;記事はここで閲覧できます&lt;&#x2F;a&gt;&lt;&#x2F;h2&gt;
+</content>
+        
+    </entry>
+</feed>
