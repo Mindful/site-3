@@ -4,10 +4,10 @@ date = "2024-03-23"
 title = "Multiword expression lookup: multiset subset retrieval"
 +++
 
-I've recently spent quite a bit of time thinking about how to find [multiword expressions](https://en.wikipedia.org/wiki/Multiword_expression) (MWEs) in a sentence. MWEs are a pretty messy topic and there is a lot of ambiguity about what even counts as an MWE, but for today I want to put that aside and talk about approaches to automatically identifying MWEs. I am fan of lexicon-based approaches to MWE identification, which just means that given a very large list of MWEs, you are trying to figure out which of them might be present in a given sentence. This can be broken down into a pipeline that looks something like this:
-1. Retrieve all of the MWEs that _could_ be present in a sentence (the "possible MWEs") from the lexicon; this can also be thought of as filtering the lexicon down to just entries whose constituents are all present the sentence. The majority of this blog post will be about how to do this efficiently, because with a poorly structured lexicon this can be quite slow.
-2. Gather all combinations of constituent words which could form a possible MWE in the sentence as "candidates"; this just means finding each combination of words in the sentence that correspond to a possible MWE, and we will cover how to do this at the end of the post.
-3. Decide if each "candidate" is actually an MWE - that is, whether its constituents take on an idiomatic/non-compositional meaning. This requires a system capable of making judgements about meaning in context, which typically means machine learning. I published a [paper](https://aclanthology.org/2023.findings-emnlp.14/) last year about one possible method to do this, but there are a variety of possible approaches and those details are beyond the scope of this blog post.
+I've recently spent quite a bit of time thinking about how to find [multiword expressions](https://en.wikipedia.org/wiki/Multiword_expression) (MWEs) in a sentence. MWEs are a pretty messy topic and there is a lot of ambiguity about what even counts as an MWE, but for today I want to put that aside and talk about approaches to automatically identifying MWEs. I am a fan of lexicon-based approaches to MWE identification, which just means that given a very large list of MWEs, you are trying to figure out which of them might be present in a given sentence. This can be broken down into a pipeline that looks something like this:
+1. Retrieve all of the MWEs that _could_ be present in a sentence (the "possible MWEs") from the lexicon; this can also be thought of as filtering the lexicon down to just entries whose constituents are all present in the sentence. The majority of this blog post will be about how to do this efficiently, because with a poorly structured lexicon this can be quite slow.
+2. Gather all combinations of constituent words which could form a possible MWE in the sentence as "candidates"; this just means finding each combination of words in the sentence that correspond to a possible MWE. We will cover how to do this at the end of the post.
+3. Decide if each "candidate" is actually an MWE - that is, whether its constituents take on an idiomatic/non-compositional meaning. This requires a system capable of making judgements about meaning in context, which typically means machine learning. I published a [paper](https://aclanthology.org/2023.findings-emnlp.14/) last year about one possible method to do this, but there are a variety of possible approaches, which are beyond the scope of this blog post.
 
 ![Example sentence](poster_sentence.png)
 
@@ -103,7 +103,7 @@ class Trie:
 
 This allows us to store only a single copy of any prefixes shared between multiple MWEs in our lexicon, but the main benefit is that searching this way means we will expend no compute on MWEs whose first word is not present in the sentence. This is _much_ faster, and gets through 1,000 sentences in 0.8 seconds on average. However, we can still make it a little faster.
 
-Word frequency in English is [very imbalanced](https://en.wikipedia.org/wiki/Zipf%27s_law), and many MWEs start with common words. For example, my relatively small lexicon has 169 MWEs starting with `in`, such as `in_theory`, `in_unison`, `in_vain`, etc. Since we only want MWEs where all words are present in the sentence, it makes more sense to look at the words least likely to be present first - that is, the lowest frequency words. We can do this by re-ordering the MWEs before we insert them into the trie using precomputed [word frequency](https://raw.githubusercontent.com/arstgit/high-frequency-vocabulary/master/30k.txt). This does mean that in rare cases where MWEs share the same words and are differentiated only by order (like `roast_pork` and `pork_roast`) we will need to attach multiple MWEs to one node in the trie, but other than that it requires only minor changes.
+Word frequency in English is [very imbalanced](https://en.wikipedia.org/wiki/Zipf%27s_law), and many MWEs start with common words. For example, my relatively small lexicon has 169 MWEs starting with `in`, such as `in_theory`, `in_unison`, `in_vain`, etc. Since we only want MWEs whose constituents are all present in the sentence, it makes more sense to look at the words least likely to be present first - that is, the lowest frequency words. We can do this by sorting the constituent words in the MWEs before we insert them into the trie using precomputed [word frequency](https://raw.githubusercontent.com/arstgit/high-frequency-vocabulary/master/30k.txt), such that the lowest frequency words come first. This does mean that in rare cases where MWEs share the same words and are differentiated only by order (like `roast_pork` and `pork_roast`) we will need to attach multiple MWEs to one node in the trie, but this requires only minor changes.
 
 ```python
 class OrderedTrie:
@@ -135,15 +135,15 @@ class OrderedTrie:
         return root
 ```
 
-Using this re-ordered trie approach, it takes only 0.5 seconds on average to process 1,000 sentences, which is about a 40% speedup over the normal trie. The average time for each of the three methods can be seen in the graph below (log scale).
+Using this sorted constituent trie approach, it takes only 0.5 seconds on average to process 1,000 sentences, which is about a 40% speedup over the aforementioned trie. The average time for each of the three methods can be seen in the graph below (log scale).
 
 ![Average time by method](average_time_by_method.png)
 
-Moving from the naive approach to using a trie is arguably a fairly obvious optimization; I think the interesting part is the further speedup we get from using word frequency to inform trie construction. Most importantly, it's also a good demonstration of how much it can help to have a good understanding of the data/domain you are trying to process. This further speedup was only made possible by thinking about what the distribution of the input data (words in English sentences) would look like.
+Moving from the naive approach to using a trie is arguably a fairly obvious optimization; I think the interesting part is the further speedup we get from using word frequency to inform trie construction. Most importantly, it's also a good demonstration of how much it can help to have a good understanding of the data/domain you are trying to process. This further speedup was only made possible by thinking about what the distribution of the input data (words in English sentences) looks like.
 
-## Mapping retrieved MWEs to candidate word groups
+## Mapping retrieved possible MWEs to candidate word groups
 
-Now that we have retrieved our possible MWEs, we can look briefly at step #2: finding every combination of words in the sentence that could constitute a given MWE. For the sentence `I ran down the stairs and fell down` and the MWE `run_down`, we start by building simple representations of our sentence as tokens and our MWE as a multiset.
+Now that we know how to retrieve our possible MWEs, let's look briefly at step #2: finding every combination of words in the sentence that could constitute a given MWE. For the sentence `I ran down the stairs and fell down` and the MWE `run_down`, we start by building simple representations of our sentence as tokens and our MWE as a multiset.
 ```python
 from collections import namedtuple, defaultdict
 from itertools import combinations, product
@@ -174,7 +174,7 @@ lemma_counter = {
 }
 ```
 
-The next part is confusing to look at, but what we're doing isn't actually that complicated. We represent options for each lemma in the MWE as lists of tuples, and want to gather all possible options. This is just *N* choose *K* for each lemma, where *N* is the number of times the given lemma appears in the sentence and *K* the number of times it appears in the MWE. These tuples will usually be only one element, except in MWEs that have repeated constituents. 
+The next part is confusing to look at, but what we're doing isn't actually that complicated. We represent tokens choices for each lemma in the MWE as lists of tuples, and want to gather all possible options. This is just *N* choose *K* for each lemma, where *N* is the number of times the given lemma appears in the sentence and *K* the number of times it appears in the MWE. These tuples will usually be only one element, except in MWEs that have repeated constituents such as `face` in `face_to_face`. 
 ```python
 candidate_word_combos = [
     list(combinations(lemma_to_tokens[lemma], lemma_counter[lemma]))
@@ -194,7 +194,7 @@ Running this on our example input gives us:
 ]
 ```
 
-Finally, we take the cartesian product of each of these lists of tuples, and unpack the tuples. Because each tuple represents possible ways of choosing a given lemma, this is effectively looking at all combinations of ways to choose words for each lemma, and gives us our original objective - every combination of words that could constitute this MWE. Finally, we sort the results to make sure that the resulting tokens are in order. 
+Finally, we take the cartesian product of each of these lists of tuples, and unpack the tuples. Because each tuple represents possible ways of choosing tokens for given lemma, this is effectively looking at all combinations of ways to choose words for each lemma, and gives us our original objective - every combination of words that could constitute this MWE. To finish, we sort the results to make sure that the resulting tokens are in order. 
 ```python
 mwe_combinations = {
     tuple(x for y in p for x in y) 
