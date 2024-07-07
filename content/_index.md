@@ -5,7 +5,7 @@ aliases = ["/technical"] # from old business card links
 
 +++
 
-Hi there! 
+Hi there, I'm Josh. 
 
 I'm a software engineer, researcher and occasional translator/interpreter working at the intersection of technology and language. I work primarily in natural language processing (NLP) and backend development, with experience leading projects in environments from fortune-500 companies to emerging startups. 
 <br/><br>

@@ -4,20 +4,20 @@ date = "2024-03-23"
 title = "Multiword expression lookup: multiset subset retrieval"
 +++
 
-I've recently spent quite a bit of time thinking about how to find [multiword expressions](https://en.wikipedia.org/wiki/Multiword_expression) (MWEs) in a sentence. MWEs are a pretty messy topic and there is a lot of ambiguity about what even counts as an MWE, but for today I want to put that aside and talk about approaches to automatically identifying MWEs. I am fan of lexicon-based approaches to MWE identification, which just means that given a very large list of possible MWEs, you are trying to figure out which of them might be present in a given sentence. This can be broken down into a pipeline that looks something like this:
-1. Retrieve all of the MWEs that _could_ be present in a sentence (the "possible MWEs") from the lexicon. The majority of this blog post will be about how to do this efficiently, because with a poorly structured lexicon this can be quite slow.
-2. Map the retrieved MWEs to concrete "candidates", which are combinations of constituent words in the sentence corresponding to a possible MWE. This just requires finding each combination of words in the sentence that correspond to a retrieved MWE, and we will cover how to do this at the end of the post.
+I've recently spent quite a bit of time thinking about how to find [multiword expressions](https://en.wikipedia.org/wiki/Multiword_expression) (MWEs) in a sentence. MWEs are a pretty messy topic and there is a lot of ambiguity about what even counts as an MWE, but for today I want to put that aside and talk about approaches to automatically identifying MWEs. I am fan of lexicon-based approaches to MWE identification, which just means that given a very large list of MWEs, you are trying to figure out which of them might be present in a given sentence. This can be broken down into a pipeline that looks something like this:
+1. Retrieve all of the MWEs that _could_ be present in a sentence (the "possible MWEs") from the lexicon; this can also be thought of as filtering the lexicon down to just entries whose constituents are all present the sentence. The majority of this blog post will be about how to do this efficiently, because with a poorly structured lexicon this can be quite slow.
+2. Gather all combinations of constituent words which could form a possible MWE in the sentence as "candidates"; this just means finding each combination of words in the sentence that correspond to a possible MWE, and we will cover how to do this at the end of the post.
 3. Decide if each "candidate" is actually an MWE - that is, whether its constituents take on an idiomatic/non-compositional meaning. This requires a system capable of making judgements about meaning in context, which typically means machine learning. I published a [paper](https://aclanthology.org/2023.findings-emnlp.14/) last year about one possible method to do this, but there are a variety of possible approaches and those details are beyond the scope of this blog post.
 
 ![Example sentence](poster_sentence.png)
 
 For the above sentence, these three steps look like this:
 
-1. Retrieve `run_down`, `run_over`, `fall_down`, `fall_over` as possible MWEs.
-2. Map each of these MWEs to candidate groups of words in the sentence, as pictured in the above diagram.
-3. Filter these so that we keep only the candidates that actually constitute MWEs. `fall_down` and `run_over` are obviously wrong, and `run_down` as an MWE means something like `(of a vehicle) to hit a person and knock them to the ground`, so we are left with `fall_over`.
+1. Retrieve `run_down`, `run_over`, `fall_down`, `fall_over` as possible MWEs - this is every MWE in our lexicon with all of its constituents present in the sentence.
+2. Find candidates for these MWEs by mapping each of them to groups of words in the sentence, as pictured in the above diagram.
+3. Filter these so that we keep only the candidates whose meaning is that of the relevant MWE. `fall_down` and `run_over` are obviously wrong, and `run_down` as an MWE means something like `(of a vehicle) to hit a person and knock them to the ground`, so we are left with `fall_over`.
 
-Note that there are sometimes multiple candidate word groups for a single MWE. For example, if we replace the last `down` with `over` for `I ran down the stairs and fell down`, there are now two possible instances of `run_down` - one for `ran` and the first `down`, and another for `ran` and the second `down`. This is also why it is convenient to split step #1 and #2 into separate steps.
+Note that there are sometimes multiple candidate word groups for a single MWE. For example, if we replace the last `down` with `over` for `I ran down the stairs and fell down`, there are now two combinations of words that can form `run_down` - one for `ran` and the first `down`, and another for `ran` and the second `down`. This is also why it is convenient to split step #1 and #2 into separate steps.
 
 
 ## Retrieving possible MWEs 
@@ -49,11 +49,11 @@ class NaiveApproach:
 ```
 
 
-This code takes an average of 28 seconds on my laptop to process (call `search()` on) 1,000 sentences. Fortunately, we can make this much faster using a [trie](https://en.wikipedia.org/wiki/trie)[^1]. Tries are prefix trees most commonly built out of characters, but because we are dealing with sequences of words, we can build ours out of words. 
+This code takes an average of 28 seconds on my laptop to process (call `search()` on) 1,000 sentences. Fortunately, we can make this much faster using a [trie](https://en.wikipedia.org/wiki/trie)[^1]. Tries are prefix trees most commonly built out of characters, but because we are dealing with words and not characters, we will build ours out of words. 
 
 ![MWE trie](mwe_trie.png)
 
-Using the MWE trie as our lexicon, we can gather possible MWEs with a depth-first search starting at the root that aborts whenever continuing down a branch of the trie would require constituents not found in the sentence. That is, we traverse only the parts of the trie that are subsets of the words in the sentence. 
+Using the MWE trie as our lexicon, we can gather possible MWEs with a depth-first search starting at the root that aborts whenever continuing down a branch of the trie would require constituent words not found in the sentence. That is, we can traverse only the parts of the trie that are subsets of the words in the sentence. 
 
 ```python
 class TrieNode:
