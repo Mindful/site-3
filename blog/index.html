@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<link rel="stylesheet" href="https://joshuatanner.dev/styles/styles.css" />
+	<link rel="icon" type="image/x-icon" href="/images/favicon.png">
+</head>
+<head>
+	<meta charset="UTF-8">
+	<title>
+		
+		List of blog posts
+		
+	</title>
+</head>
+<main>
+	<nav class="flex bg-green p-0 h-16" style="box-shadow: 0px 3px 10px 0px #4d4d4d;">
+		<div class="flex items-center flex-shrink-0 text-white mr-6 ml-6">
+			<!-- Replace LangLink with a tag -->
+			<a href="https://joshuatanner.dev/" class="text-white"><span>Joshua Tanner</span></a>
+		</div>
+		<div style="border-left: 1px solid white; height: 100%;" class="mr-6"></div>
+
+		<div class="flex w-full items-center text-white">
+
+			<div class="hidden sm:flex">
+				<a href='https://joshuatanner.dev/translation/' class="text-white mr-4">TRANSLATION</a>
+				<a href='https://joshuatanner.dev/blog/' class="text-white">BLOG</a>
+			</div>
+
+			<div class="relative content-center -ml-4 sm:hidden">
+				<input type="checkbox" id="sortbox" class="toggler"/>
+				<div class="hamburger"><div></div></div>
+
+				<div id="sortboxmenu" class="absolute mt-2 right-1 top-full min-w-max shadow rounded hidden bg-gray-300 border border-gray-400 transition delay-75 ease-in-out z-10">
+					<ul class="block text-right text-gray-900">
+						<li><a href='/translation' class="block px-3 py-2 bg-green text-white">TRANSLATION</a></li>
+						<li><a href='/blog' class="block px-3 py-2 bg-green text-white">BLOG</a></li>
+					</ul>
+				</div>
+			</div>
+
+			
+				<!-- If the current page is in English, show link to Japanese. Delete "//" from URLS -->
+				
+				<a href="https:&#x2F;&#x2F;joshuatanner.dev&#x2F;ja&#x2F;blog" class="absolute md:right-8 right-4">日本語</a>
+			
+
+		</div>
+	</nav>
+
+	<body>
+
+		<div class="flex md:flex-row flex-col px-5 md:pr-0 items-center md:items-start">
+			<div class="flex m-10 w-full flex-col">
+				
+  <!-- If you are using pagination, section.pages will be empty. You need to use the paginator object -->  
+  
+    
+  <div class="flex p-8 sm:p-14 bg-white shadowed w-full flex-col mb-6">
+    <header class="text-3xl md:text-4xl my-4">
+	    
+	      <a href="https://joshuatanner.dev/blog/blog-mwe-lookup/">Multiword expression lookup: multiset subset retrieval</a>
+		
+    </header>
+    <span class="mb-2">2024-03-23</span>
+    <div class="blogpost">
+      <p>I've recently spent quite a bit of time thinking about how to find <a href="https://en.wikipedia.org/wiki/Multiword_expression">multiword expressions</a> (MWEs) in a sentence. MWEs are a pretty messy topic and there is a lot of ambiguity about what even counts as an MWE, but for today I want to put that aside and talk about approaches to automatically identifying MWEs. I am a fan of lexicon-based approaches to MWE identification, which just means that given a very large list of MWEs, you are trying to figure out which of them might be present in a given sentence. This can be broken down into a pipeline that looks something like this:</p>
+<ol>
+<li>Retrieve all of the MWEs that <em>could</em> be present in a sentence (the "possible MWEs") from the lexicon; this can also be thought of as filtering the lexicon down to just entries whose constituents are all present in the sentence. The majority of this blog post will be about how to do this efficiently, because with a poorly structured lexicon this can be quite slow.</li>
+<li>Gather all combinations of constituent words which could form a possible MWE in the sentence as "candidates"; this just means finding each combination of words in the sentence that correspond to a possible MWE. We will cover how to do this at the end of the post.</li>
+<li>Decide if each "candidate" is actually an MWE - that is, whether its constituents take on an idiomatic/non-compositional meaning. This requires a system capable of making judgements about meaning in context, which typically means machine learning. I published a <a href="https://aclanthology.org/2023.findings-emnlp.14/">paper</a> last year about one possible method to do this, but there are a variety of possible approaches, which are beyond the scope of this blog post.</li>
+</ol>
+<p><img src="https://joshuatanner.dev/blog/blog-mwe-lookup/poster_sentence.png" alt="Example sentence" /></p>
+<p>For the above sentence, these three steps look like this:</p>
+<ol>
+<li>Retrieve <code>run_down</code>, <code>run_over</code>, <code>fall_down</code>, <code>fall_over</code> as possible MWEs - this is every MWE in our lexicon with all of its constituents present in the sentence.</li>
+<li>Find candidates for these MWEs by mapping each of them to groups of words in the sentence, as pictured in the above diagram.</li>
+<li>Filter these so that we keep only the candidates whose meaning is that of the relevant MWE. <code>fall_down</code> and <code>run_over</code> are obviously wrong, and <code>run_down</code> as an MWE means something like <code>(of a vehicle) to hit a person and knock them to the ground</code>, so we are left with <code>fall_over</code>.</li>
+</ol>
+<p>Note that there are sometimes multiple candidate word groups for a single MWE. For example, if we replace the last <code>down</code> with <code>over</code> for <code>I ran down the stairs and fell down</code>, there are now two combinations of words that can form <code>run_down</code> - one for <code>ran</code> and the first <code>down</code>, and another for <code>ran</code> and the second <code>down</code>. This is also why it is convenient to split step #1 and #2 into separate steps.</p>
+<h2 id="retrieving-possible-mwes">Retrieving possible MWEs</h2>
+<p>Now, the main topic: retrieving possible MWEs for step #1. While some MWEs have constraints on how they can be formed in a sentence, if we include verbal MWEs then there are very few guarantees. They do not have to be contiguous - see <code>put_down</code> in <code>She put her beloved dog down</code> - and worse, they do not even have to be in order - see <code>the beans have been spilled</code> for <code>spill_the_beans</code>. Finally, the constituent words of an MWE are not always unique, such as in <code>face_to_face</code>.</p>
+<p>Given that constituent words are neither required to be in order nor unique, the formalization of our possible MWE retrieval problem is: given a multiset <em>S</em> of words in the input sentence, and a set <em>L</em> containing multisets for each possible MWE, find all members of <em>L</em> that are strict subsets of <em>S</em>.</p>
+<p><img src="https://joshuatanner.dev/blog/blog-mwe-lookup/equation.svg" alt="MWE retrieval equation" /></p>
+<p>This means a worst case runtime of <em>O(M * |L|)</em> where <em>M</em> is the average size of an MWE multiset, which is a pretty expensive upper bound. The naive approach of checking if every MWE in the lexicon is a subset of the words in the sentence will end up processing every MWE multiset for every sentence, and is consequently very slow.</p>
+<pre data-lang="python" style="background-color:#2b303b;color:#c0c5ce;" class="language-python "><code class="language-python" data-lang="python"><span style="color:#b48ead;">class </span><span style="color:#ebcb8b;">NaiveApproach</span><span style="color:#eff1f5;">:
+</span><span>    </span><span style="color:#b48ead;">def </span><span style="color:#96b5b4;">__init__</span><span>(</span><span style="color:#bf616a;">self</span><span>):
+</span><span>        </span><span style="color:#bf616a;">self</span><span>.data = [
+</span><span>            (mwe[&#39;</span><span style="color:#a3be8c;">lemma</span><span>&#39;], </span><span style="color:#bf616a;">Counter</span><span>(mwe[&#39;</span><span style="color:#a3be8c;">constituents</span><span>&#39;]))
+</span><span>            </span><span style="color:#b48ead;">for </span><span>mwe </span><span style="color:#b48ead;">in </span><span style="color:#bf616a;">get_mwes</span><span>()
+</span><span>        ]
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">def </span><span style="color:#8fa1b3;">search</span><span>(</span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">words</span><span>: list[str]) -&gt; list[str]:
+</span><span>        word_counter = </span><span style="color:#bf616a;">Counter</span><span>(words)
+</span><span>        </span><span style="color:#b48ead;">return </span><span>[
+</span><span>            mwe </span><span style="color:#b48ead;">for </span><span>mwe, constituents </span><span style="color:#b48ead;">in </span><span style="color:#bf616a;">self</span><span>.data
+</span><span>            </span><span style="color:#b48ead;">if </span><span style="color:#96b5b4;">all</span><span>(
+</span><span>                word_counter[constituent] &gt;= count
+</span><span>                </span><span style="color:#b48ead;">for </span><span>constituent, count </span><span style="color:#b48ead;">in </span><span>constituents.</span><span style="color:#bf616a;">items</span><span>()
+</span><span>            )
+</span><span>        ]
+</span></code></pre>
+<p>This code takes an average of 28 seconds on my laptop to process (call <code>search()</code> on) 1,000 sentences. Fortunately, we can make this much faster using a <a href="https://en.wikipedia.org/wiki/trie">trie</a><sup class="footnote-reference"><a href="#1">1</a></sup>. Tries are prefix trees most commonly built out of characters, but because we are dealing with words and not characters, we will build ours out of words.</p>
+<p><img src="https://joshuatanner.dev/blog/blog-mwe-lookup/mwe_trie.png" alt="MWE trie" /></p>
+<p>Using the MWE trie as our lexicon, we can gather possible MWEs with a depth-first search starting at the root, which aborts when we hit a node for a word missing from the sentence. That is, we can traverse only the parts of the trie that are subsets of the words in the sentence.</p>
+<pre data-lang="python" style="background-color:#2b303b;color:#c0c5ce;" class="language-python "><code class="language-python" data-lang="python"><span style="color:#b48ead;">class </span><span style="color:#ebcb8b;">TrieNode</span><span style="color:#eff1f5;">:
+</span><span>    __slots__ = [&#39;</span><span style="color:#a3be8c;">lemma</span><span>&#39;, &#39;</span><span style="color:#a3be8c;">children</span><span>&#39;]
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">def </span><span style="color:#96b5b4;">__init__</span><span>(</span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">lemma</span><span>: Optional[str]):
+</span><span>    	</span><span style="color:#65737e;"># lemma represents a possible MWE that terminates at this node
+</span><span>        </span><span style="color:#bf616a;">self</span><span>.lemma = lemma  
+</span><span>        </span><span style="color:#bf616a;">self</span><span>.children = {}
+</span><span>
+</span><span>
+</span><span style="color:#b48ead;">class </span><span style="color:#ebcb8b;">Trie</span><span style="color:#eff1f5;">:
+</span><span>    </span><span style="color:#b48ead;">def </span><span style="color:#96b5b4;">__init__</span><span>(</span><span style="color:#bf616a;">self</span><span>):
+</span><span>        </span><span style="color:#bf616a;">self</span><span>.tree = </span><span style="color:#bf616a;">self</span><span>.</span><span style="color:#bf616a;">_build_tree</span><span>(</span><span style="color:#bf616a;">get_mwes</span><span>())
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">def </span><span style="color:#8fa1b3;">_build_tree</span><span>(</span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">mwes</span><span>: list[dict[str, str]]):
+</span><span>        root = </span><span style="color:#bf616a;">TrieNode</span><span>(</span><span style="color:#d08770;">None</span><span>)
+</span><span>        </span><span style="color:#b48ead;">for </span><span>mwe </span><span style="color:#b48ead;">in </span><span>mwes:
+</span><span>            curlevel = root
+</span><span>            </span><span style="color:#b48ead;">for </span><span>word </span><span style="color:#b48ead;">in </span><span>mwe[&#39;</span><span style="color:#a3be8c;">constituents</span><span>&#39;]:
+</span><span>                </span><span style="color:#b48ead;">if </span><span>word not in curlevel.children:
+</span><span>                    curlevel.children[word] = </span><span style="color:#bf616a;">TrieNode</span><span>(</span><span style="color:#d08770;">None</span><span>)
+</span><span>                curlevel = curlevel.children[word]
+</span><span>
+</span><span>            curlevel.lemma = mwe[&#39;</span><span style="color:#a3be8c;">lemma</span><span>&#39;]
+</span><span>
+</span><span>        </span><span style="color:#b48ead;">return </span><span>root
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">def </span><span style="color:#8fa1b3;">search</span><span>(</span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">sentence</span><span>: list[str]) -&gt; list[str]:
+</span><span>        counter = </span><span style="color:#bf616a;">Counter</span><span>(sentence)
+</span><span>        results = []
+</span><span>        </span><span style="color:#bf616a;">self</span><span>.</span><span style="color:#bf616a;">_search</span><span>(</span><span style="color:#bf616a;">self</span><span>.tree, counter, results)
+</span><span>        </span><span style="color:#b48ead;">return </span><span>results
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">def </span><span style="color:#8fa1b3;">_search</span><span>(</span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">cur_node</span><span>: TrieNode, </span><span style="color:#bf616a;">counter</span><span>: Counter, </span><span style="color:#bf616a;">results</span><span>: list):
+</span><span>        possible_next_constituents = [c </span><span style="color:#b48ead;">for </span><span>c </span><span style="color:#b48ead;">in </span><span>counter </span><span style="color:#b48ead;">if </span><span>counter[c] &gt; </span><span style="color:#d08770;">0 </span><span>and c in cur_node.children]
+</span><span>
+</span><span>        </span><span style="color:#b48ead;">for </span><span>constituent </span><span style="color:#b48ead;">in </span><span>possible_next_constituents:
+</span><span>            next_node = cur_node.children[constituent]
+</span><span>            counter[constituent] -= </span><span style="color:#d08770;">1
+</span><span>            </span><span style="color:#b48ead;">if </span><span>next_node.lemma is not </span><span style="color:#d08770;">None</span><span>:
+</span><span>                results.</span><span style="color:#bf616a;">append</span><span>(next_node.lemma)
+</span><span>            </span><span style="color:#bf616a;">self</span><span>.</span><span style="color:#bf616a;">_search</span><span>(next_node, counter, results)
+</span><span>            counter[constituent] += </span><span style="color:#d08770;">1
+</span></code></pre>
+<p>This allows us to store only a single copy of any prefixes shared between multiple MWEs in our lexicon, but the main benefit is that searching this way means we will expend no compute on MWEs whose first word is not present in the sentence. This is <em>much</em> faster, and gets through 1,000 sentences in 0.8 seconds on average. However, we can still make it a little faster.</p>
+<p>Word frequency in English is <a href="https://en.wikipedia.org/wiki/Zipf%27s_law">very imbalanced</a>, and many MWEs start with common words. For example, my relatively small lexicon has 169 MWEs starting with <code>in</code>, such as <code>in_theory</code>, <code>in_unison</code>, <code>in_vain</code>, etc. Since we only want MWEs whose constituents are all present in the sentence, it makes more sense to look at the words least likely to be present first - that is, the lowest frequency words. We can do this by sorting the constituent words in the MWEs before we insert them into the trie using precomputed <a href="https://raw.githubusercontent.com/arstgit/high-frequency-vocabulary/master/30k.txt">word frequency</a>, such that the lowest frequency words come first. This does mean that in rare cases where MWEs share the same words and are differentiated only by order (like <code>roast_pork</code> and <code>pork_roast</code>) we will need to attach multiple MWEs to one node in the trie, but this requires only minor changes.</p>
+<pre data-lang="python" style="background-color:#2b303b;color:#c0c5ce;" class="language-python "><code class="language-python" data-lang="python"><span style="color:#b48ead;">class </span><span style="color:#ebcb8b;">OrderedTrie</span><span style="color:#eff1f5;">:
+</span><span>	</span><span style="color:#65737e;"># not pictured here: 
+</span><span>    </span><span style="color:#65737e;"># 1) TrieNode now holds a list of lemmas instead of a single lemma
+</span><span>    </span><span style="color:#65737e;"># 2) _search needs one line changed to return all lemmas on a node 
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">def </span><span style="color:#96b5b4;">__init__</span><span>(</span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">word_data</span><span>: dict[str, int]):
+</span><span>    	</span><span style="color:#65737e;"># any missing words are treated as last in the frequency list
+</span><span>        </span><span style="color:#bf616a;">self</span><span>.word_freqs = </span><span style="color:#bf616a;">defaultdict</span><span>(</span><span style="color:#b48ead;">lambda</span><span>: </span><span style="color:#96b5b4;">len</span><span>(word_data), word_data)
+</span><span>        </span><span style="color:#bf616a;">self</span><span>.tree = </span><span style="color:#bf616a;">self</span><span>.</span><span style="color:#bf616a;">_build_tree</span><span>(</span><span style="color:#bf616a;">get_mwes</span><span>())
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">def </span><span style="color:#8fa1b3;">_reorder</span><span>(</span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">words</span><span>: list[str]) -&gt; list[str]:
+</span><span>        </span><span style="color:#65737e;"># sort by word frequency, then alphabetically in case
+</span><span>        </span><span style="color:#65737e;"># both words are missing from word_freqs
+</span><span>        </span><span style="color:#b48ead;">return </span><span style="color:#96b5b4;">sorted</span><span>(words, </span><span style="color:#bf616a;">key</span><span>=</span><span style="color:#b48ead;">lambda </span><span style="color:#bf616a;">w</span><span>: (</span><span style="color:#bf616a;">self</span><span>.word_freqs[w], w), </span><span style="color:#bf616a;">reverse</span><span>=</span><span style="color:#d08770;">True</span><span>)
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">def </span><span style="color:#8fa1b3;">_build_tree</span><span>(</span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">mwes</span><span>: list[dict[str, str]]):
+</span><span>        root = </span><span style="color:#bf616a;">OrderedTrieNode</span><span>([])
+</span><span>        </span><span style="color:#b48ead;">for </span><span>mwe </span><span style="color:#b48ead;">in </span><span>mwes:
+</span><span>            curlevel = root
+</span><span>            </span><span style="color:#b48ead;">for </span><span>word </span><span style="color:#b48ead;">in </span><span style="color:#bf616a;">self</span><span>.</span><span style="color:#bf616a;">_reorder</span><span>(mwe[&#39;</span><span style="color:#a3be8c;">constituents</span><span>&#39;]):
+</span><span>                </span><span style="color:#b48ead;">if </span><span>word not in curlevel.children:
+</span><span>                    curlevel.children[word] = </span><span style="color:#bf616a;">OrderedTrieNode</span><span>(word)
+</span><span>                curlevel = curlevel.children[word]
+</span><span>
+</span><span>            curlevel.lemmas.</span><span style="color:#bf616a;">append</span><span>(mwe[&#39;</span><span style="color:#a3be8c;">lemma</span><span>&#39;])
+</span><span>
+</span><span>        </span><span style="color:#b48ead;">return </span><span>root
+</span></code></pre>
+<p>Using this sorted constituent trie approach, it takes only 0.5 seconds on average to process 1,000 sentences, which is about a 40% speedup over the aforementioned trie. The average time for each of the three methods can be seen in the graph below (log scale).</p>
+<p><img src="https://joshuatanner.dev/blog/blog-mwe-lookup/average_time_by_method.png" alt="Average time by method" /></p>
+<p>Moving from the naive approach to using a trie is arguably a fairly obvious optimization; I think the interesting part is the further speedup we get from using word frequency to inform trie construction. Most importantly, it's also a good demonstration of how much it can help to have a good understanding of the data/domain you are trying to process. This further speedup was only made possible by thinking about what the distribution of the input data (words in English sentences) looks like.</p>
+<h2 id="mapping-retrieved-possible-mwes-to-candidate-word-groups">Mapping retrieved possible MWEs to candidate word groups</h2>
+<p>Now that we know how to retrieve our possible MWEs, let's look briefly at step #2: finding every combination of words in the sentence that could constitute a given MWE. For the sentence <code>I ran down the stairs and fell down</code> and the MWE <code>run_down</code>, we start by building simple representations of our sentence as tokens and our MWE as a multiset.</p>
+<pre data-lang="python" style="background-color:#2b303b;color:#c0c5ce;" class="language-python "><code class="language-python" data-lang="python"><span style="color:#b48ead;">from </span><span>collections </span><span style="color:#b48ead;">import </span><span>namedtuple, defaultdict
+</span><span style="color:#b48ead;">from </span><span>itertools </span><span style="color:#b48ead;">import </span><span>combinations, product
+</span><span>
+</span><span>token = </span><span style="color:#bf616a;">namedtuple</span><span>(&quot;</span><span style="color:#a3be8c;">Token</span><span>&quot;, [&quot;</span><span style="color:#a3be8c;">form</span><span>&quot;, &quot;</span><span style="color:#a3be8c;">idx</span><span>&quot;, &quot;</span><span style="color:#a3be8c;">lemma</span><span>&quot;])
+</span><span>sentence = [
+</span><span>    </span><span style="color:#bf616a;">token</span><span>(&quot;</span><span style="color:#a3be8c;">I</span><span>&quot;, </span><span style="color:#d08770;">0</span><span>, &quot;</span><span style="color:#a3be8c;">I</span><span>&quot;),
+</span><span>    </span><span style="color:#bf616a;">token</span><span>(&quot;</span><span style="color:#a3be8c;">ran</span><span>&quot;, </span><span style="color:#d08770;">1</span><span>, &quot;</span><span style="color:#a3be8c;">run</span><span>&quot;),
+</span><span>    </span><span style="color:#bf616a;">token</span><span>(&quot;</span><span style="color:#a3be8c;">down</span><span>&quot;, </span><span style="color:#d08770;">2</span><span>, &quot;</span><span style="color:#a3be8c;">down</span><span>&quot;),
+</span><span>    </span><span style="color:#bf616a;">token</span><span>(&quot;</span><span style="color:#a3be8c;">the</span><span>&quot;, </span><span style="color:#d08770;">3</span><span>, &quot;</span><span style="color:#a3be8c;">the</span><span>&quot;),
+</span><span>    </span><span style="color:#bf616a;">token</span><span>(&quot;</span><span style="color:#a3be8c;">stairs</span><span>&quot;, </span><span style="color:#d08770;">4</span><span>, &quot;</span><span style="color:#a3be8c;">stairs</span><span>&quot;),
+</span><span>    </span><span style="color:#bf616a;">token</span><span>(&quot;</span><span style="color:#a3be8c;">and</span><span>&quot;, </span><span style="color:#d08770;">5</span><span>, &quot;</span><span style="color:#a3be8c;">and</span><span>&quot;),
+</span><span>    </span><span style="color:#bf616a;">token</span><span>(&quot;</span><span style="color:#a3be8c;">fell</span><span>&quot;, </span><span style="color:#d08770;">6</span><span>, &quot;</span><span style="color:#a3be8c;">fall</span><span>&quot;),
+</span><span>    </span><span style="color:#bf616a;">token</span><span>(&quot;</span><span style="color:#a3be8c;">down</span><span>&quot;, </span><span style="color:#d08770;">7</span><span>, &quot;</span><span style="color:#a3be8c;">down</span><span>&quot;),
+</span><span>    </span><span style="color:#bf616a;">token</span><span>(&quot;</span><span style="color:#a3be8c;">.</span><span>&quot;, </span><span style="color:#d08770;">8</span><span>, &quot;</span><span style="color:#a3be8c;">.</span><span>&quot;),
+</span><span>]
+</span><span>
+</span><span style="color:#65737e;"># build a map of lemmas to tokens
+</span><span style="color:#65737e;"># so we can look up tokens by their lemma
+</span><span>lemma_to_tokens = </span><span style="color:#bf616a;">defaultdict</span><span>(list)
+</span><span style="color:#b48ead;">for </span><span>t </span><span style="color:#b48ead;">in </span><span>sentence:
+</span><span>    lemma_to_tokens[t.lemma].</span><span style="color:#bf616a;">append</span><span>(t)
+</span><span>
+</span><span style="color:#65737e;"># mwe: &quot;run_down&quot;
+</span><span>lemma_counter = {
+</span><span>    &quot;</span><span style="color:#a3be8c;">run</span><span>&quot;: </span><span style="color:#d08770;">1</span><span>,
+</span><span>    &quot;</span><span style="color:#a3be8c;">down</span><span>&quot;: </span><span style="color:#d08770;">1</span><span>,
+</span><span>}
+</span></code></pre>
+<p>The next part is confusing to look at, but what we're doing isn't actually that complicated. We represent tokens choices for each lemma in the MWE as lists of tuples, and want to gather all possible options. This is just <em>N</em> choose <em>K</em> for each lemma, where <em>N</em> is the number of times the given lemma appears in the sentence and <em>K</em> the number of times it appears in the MWE. These tuples will usually be only one element, except in MWEs that have repeated constituents such as <code>face</code> in <code>face_to_face</code>.</p>
+<pre data-lang="python" style="background-color:#2b303b;color:#c0c5ce;" class="language-python "><code class="language-python" data-lang="python"><span>candidate_word_combos = [
+</span><span>    </span><span style="color:#bf616a;">list</span><span>(</span><span style="color:#bf616a;">combinations</span><span>(lemma_to_tokens[lemma], lemma_counter[lemma]))
+</span><span>    </span><span style="color:#b48ead;">for </span><span>lemma </span><span style="color:#b48ead;">in </span><span>lemma_counter
+</span><span>]
+</span></code></pre>
+<p>Running this on our example input gives us:</p>
+<pre data-lang="python" style="background-color:#2b303b;color:#c0c5ce;" class="language-python "><code class="language-python" data-lang="python"><span>[
+</span><span>    [
+</span><span>        (</span><span style="color:#bf616a;">Token</span><span>(</span><span style="color:#bf616a;">form</span><span>=&#39;</span><span style="color:#a3be8c;">ran</span><span>&#39;, </span><span style="color:#bf616a;">idx</span><span>=</span><span style="color:#d08770;">1</span><span>, </span><span style="color:#bf616a;">lemma</span><span>=&#39;</span><span style="color:#a3be8c;">run</span><span>&#39;),)
+</span><span>    ], 
+</span><span>    [
+</span><span>        (</span><span style="color:#bf616a;">Token</span><span>(</span><span style="color:#bf616a;">form</span><span>=&#39;</span><span style="color:#a3be8c;">down</span><span>&#39;, </span><span style="color:#bf616a;">idx</span><span>=</span><span style="color:#d08770;">2</span><span>, </span><span style="color:#bf616a;">lemma</span><span>=&#39;</span><span style="color:#a3be8c;">down</span><span>&#39;),), 
+</span><span>        (</span><span style="color:#bf616a;">Token</span><span>(</span><span style="color:#bf616a;">form</span><span>=&#39;</span><span style="color:#a3be8c;">down</span><span>&#39;, </span><span style="color:#bf616a;">idx</span><span>=</span><span style="color:#d08770;">7</span><span>, </span><span style="color:#bf616a;">lemma</span><span>=&#39;</span><span style="color:#a3be8c;">down</span><span>&#39;),)
+</span><span>    ]
+</span><span>]
+</span></code></pre>
+<p>Finally, we take the cartesian product of each of these lists of tuples, and unpack the tuples. Because each tuple represents possible ways of choosing tokens for given lemma, this is effectively looking at all combinations of ways to choose words for each lemma, and gives us our original objective - every combination of words that could constitute this MWE. To finish, we sort the results to make sure that the resulting tokens are in order.</p>
+<pre data-lang="python" style="background-color:#2b303b;color:#c0c5ce;" class="language-python "><code class="language-python" data-lang="python"><span>mwe_combinations = {
+</span><span>    </span><span style="color:#bf616a;">tuple</span><span>(x </span><span style="color:#b48ead;">for </span><span>y </span><span style="color:#b48ead;">in </span><span>p </span><span style="color:#b48ead;">for </span><span>x </span><span style="color:#b48ead;">in </span><span>y) 
+</span><span>    </span><span style="color:#b48ead;">for </span><span>p </span><span style="color:#b48ead;">in </span><span style="color:#bf616a;">product</span><span>(*candidate_word_combos)
+</span><span>}
+</span><span>
+</span><span>sorted_mwe_combinations = [
+</span><span>    </span><span style="color:#96b5b4;">sorted</span><span>(raw_combo, </span><span style="color:#bf616a;">key</span><span>=</span><span style="color:#b48ead;">lambda </span><span style="color:#bf616a;">t</span><span>: t.idx) 
+</span><span>    </span><span style="color:#b48ead;">for </span><span>raw_combo </span><span style="color:#b48ead;">in </span><span>mwe_combinations
+</span><span>]
+</span></code></pre>
+<p>The final result:</p>
+<pre data-lang="python" style="background-color:#2b303b;color:#c0c5ce;" class="language-python "><code class="language-python" data-lang="python"><span>[
+</span><span>    [
+</span><span>        </span><span style="color:#bf616a;">Token</span><span>(</span><span style="color:#bf616a;">form</span><span>=&#39;</span><span style="color:#a3be8c;">ran</span><span>&#39;, </span><span style="color:#bf616a;">idx</span><span>=</span><span style="color:#d08770;">1</span><span>, </span><span style="color:#bf616a;">lemma</span><span>=&#39;</span><span style="color:#a3be8c;">run</span><span>&#39;), 
+</span><span>        </span><span style="color:#bf616a;">Token</span><span>(</span><span style="color:#bf616a;">form</span><span>=&#39;</span><span style="color:#a3be8c;">down</span><span>&#39;, </span><span style="color:#bf616a;">idx</span><span>=</span><span style="color:#d08770;">2</span><span>, </span><span style="color:#bf616a;">lemma</span><span>=&#39;</span><span style="color:#a3be8c;">down</span><span>&#39;)
+</span><span>    ], 
+</span><span>    [
+</span><span>        </span><span style="color:#bf616a;">Token</span><span>(</span><span style="color:#bf616a;">form</span><span>=&#39;</span><span style="color:#a3be8c;">ran</span><span>&#39;, </span><span style="color:#bf616a;">idx</span><span>=</span><span style="color:#d08770;">1</span><span>, </span><span style="color:#bf616a;">lemma</span><span>=&#39;</span><span style="color:#a3be8c;">run</span><span>&#39;), 
+</span><span>        </span><span style="color:#bf616a;">Token</span><span>(</span><span style="color:#bf616a;">form</span><span>=&#39;</span><span style="color:#a3be8c;">down</span><span>&#39;, </span><span style="color:#bf616a;">idx</span><span>=</span><span style="color:#d08770;">7</span><span>, </span><span style="color:#bf616a;">lemma</span><span>=&#39;</span><span style="color:#a3be8c;">down</span><span>&#39;)
+</span><span>    ]
+</span><span>]
+</span><span>
+</span></code></pre>
+<p> </p>
+<hr/>
+<div class="footnote-definition" id="1"><sup class="footnote-definition-label">1</sup>
+<p>Note that while the trie-based approach runs much faster on average, its theoretical worst case runtime is the same as the naive approach. However, getting anywhere near this upper bound with the trie would require a sentence containing most or all of the MWEs in the lexicon, which is not realistic.</p>
+</div>
+
+    </div>
+  </div>
+
+  
+    
+  <div class="flex p-8 sm:p-14 bg-white shadowed w-full flex-col mb-6">
+    <header class="text-3xl md:text-4xl my-4">
+	    
+	      <a href="https://joshuatanner.dev/blog/blog-promenade/">My article for Seiken News</a>
+		
+    </header>
+    <span class="mb-2">2021-05-09</span>
+    <div class="blogpost">
+      <p>The Institute of Industrial Science, where I am currently doing research, publishes a newsletter called <a href="https://www.iis.u-tokyo.ac.jp/ja/about/publication/seiken_news/">Seiken News</a> every two months. I had the opportunity to write an article for the April issue's "PROMENADE" section, which is reserved for researchers from abroad. This was my first time writing anything substantial in Japanese, so I thought it was worth holding on to. The article primarily discusses my arrival in Japan and my life since then, but if you're interested, you can read it in "Seiken News #189" at the link provided below.</p>
+<p>Incidentally, the proverb written in both Japanese and Yiddish at the beginning of the article is one I originally learned in English as "Man makes plans, and God laughs" from my parents. Only during the research for this article did I discover that it's originally a Yiddish proverb. I of course knew that my ancestors were Eastern European Jews, but I was surprised to find a direct Yiddish translation in the English I normally use. Made me feel a bit closer to my roots.</p>
+<h2 id="you-can-view-the-article-here"><a href="https://issuu.com/utokyo-iis/docs/iisnews189/26">You can view the article here</a></h2>
+
+    </div>
+  </div>
+
+  
+    
+  <div class="flex p-8 sm:p-14 bg-white shadowed w-full flex-col mb-6">
+    <header class="text-3xl md:text-4xl my-4">
+	    
+	      <a href="https://joshuatanner.dev/blog/blog-error-categories/">Categorizing grammatical error explanations</a>
+		
+    </header>
+    <span class="mb-2">2021-04-12</span>
+    <div class="blogpost">
+      <p>I recently worked on a research project attempting to group grammatical errors into categories that could be explained similarly, and develop a process to automatically generate explanations for a particular category. This ultimately didn't pan out as a research idea, but the time I spent working on it gave me some perspective on how one might categorize errors for the purpose of explaining them. This post will be about some of the categorizations I settled on for trying to explain errors, and what I found interesting about them - it will <em>not</em> include technical implementation details from said research, although I will link to a few papers and other outside resources. A couple disclaimers up front:</p>
+<ol>
+<li>These categories are subjective, and only really useful as a way to group together errors that can be explained similarly.</li>
+<li>There is very rough information about the distribution of these categories at the end of the post, but they are mostly presented in the order I thought would be enjoyable to read, not from most to least common.</li>
+<li>A post covering every possible type of error would be too long for most people to read, and too long for me to write, so this post won't attempt to do that.</li>
+<li>These categories aren't limited to English, but the examples are English and some categories may be primarily applicable to English.</li>
+</ol>
+<h2 id="how-are-errors-normally-classified">How are errors normally classified?</h2>
+<p>There isn't really a standard set of categories for grammatical errors, so categorizations can vary wildly depending on the goals of the project. The closest thing that the natural language processing community has to a standard set of categories is provided by an automatic classification tool called <a href="https://www.aclweb.org/anthology/P17-1074.pdf">ERRANT</a>, which categorizes errors in pairs of erroneous and corrected sentences based on the content that was changed in the corrected version.</p>
+<p><img src="https://joshuatanner.dev/blog/blog-error-categories/errant-classification-examples.png" alt="ERRANT classification examples" /></p>
+<p>ERRANT is a great tool for analysis, but its categories are not exceptionally useful for explaining to someone why their error is an error, and it classifies about 20% of errors as <code>OTHER</code><sup class="footnote-reference"><a href="#1">1</a></sup>. Note that this prevalence of <code>OTHER</code> type errors is not a reflection of some kind of failure on ERRANT's part; some portion of errors simply do not fit cleanly into any kind of category.</p>
+<p>The theoretical linguistics community has a wider variety of categorizations to offer, although most are still aimed at analysis, and I don't know of any that specifically target being comprehensible for language learners or are widely used in a teaching context. If you do, please let me know.</p>
+<h2 id="some-errors-are-beyond-help">Some errors are beyond help</h2>
+<p>As the prevalence of ERRANT's <code>OTHER</code> category hinted at, some errors are simply not classifiable or explainable. This is most often when the content produced by a learner is so garbled that it looks near random, and restoring it to a correct state would require something closer to a rewrite. Below are some excerpts taken from publically available grammatical error correction data<sup class="footnote-reference"><a href="#2">2</a></sup>:</p>
+<blockquote>
+<p>Unfortunately I had ever been in the US so I have any idea about how much money I will probably need and about what kind of clothes I have to take with me.</p>
+<p>Regarding the programme you have organised, it is great ideas everything that you have planed, but I would like to suggest to you something that the students saw in an advertisement.</p>
+</blockquote>
+<p>How would you explain what's wrong with the above sentences? The first seems to be a case of the author dropping negations in places they are necessary, but not in any way that fits cleanly into a category of some kind: <code>ever</code> should be <code>never</code>, <code>have</code> should be <code>don't have</code>, and so on. The second sentence is surprisingly comprehensible despite being a grammatical mess, but the area around <code>it is great ideas everything</code> doesn't reduce cleanly to a specific type of error. That said, there are plenty of sentences with errors that are quite a bit more amenable to classification.</p>
+<p>As my research focused on explaining errors to language learners, the classifications I present below will be heavily focused on the reasons behind an error, such as what specific rule it breaks or why the learner might have made the mistake. These classifications are not necessarily intended to be explanations in and of themselves, but each category represents a group of errors that can be explained similarly. Additionally, many errors can arguably fit into more than one category.</p>
+<h2 id="semantic-errors">Semantic errors</h2>
+<p>These are my favorite kind of error, partly because in the strict sense they often have nothing to do with actual grammar, and partly because they can be pretty fun. This category can really be summarized as: "you produced (mostly) valid output that doesn't communicate your intended meaning".</p>
+<p>Let's look at an example:</p>
+<blockquote>
+<p>Interestingly, nowadays, I live in the scientific world which I read in the book.</p>
+</blockquote>
+<p>This sentence obviously looks weird, but what's wrong? Everything looks fine grammatically - we get a reasonable sentence by just switching out one transitive verb for another.</p>
+<blockquote>
+<p>Interestingly, nowadays, I live in the scientific world which I saw in the book.</p>
+</blockquote>
+<p>This is still slightly unnatural, mostly due to article use, but we will come back to articles later. The point I want to make is that the fundamental problem in the original sentence is in the phrase <code>the scientific world which I read in the book</code>. This should be even more obvious if we take this from a relative clause to a normal English sentence: <code>I read the scientific world in the book.</code> The English verb <code>read</code> takes a direct object, as in <code>I read a magazine</code>, but there is no sensible interpretation of <code>read a world</code>. The author of this sentence was just one <code>about</code> away from what they likely wanted to say, which was <code>the scientific world which I read about in the book</code>.</p>
+<p>Here are a couple more examples of sentences with semantic errors:</p>
+<blockquote>
+<p>I would prefer to live in log cabins because I think they are more comfortable than tents.</p>
+<p>She has to do it , and is a sacrifice .</p>
+<p>If I look back in the past I can find that computer is following the same street of television, telephon and a lot of other things...</p>
+</blockquote>
+<p>The semantic issues, in order, are:</p>
+<ol>
+<li>Living in multiple log cabins at once</li>
+<li>The subject of the sentence being a sacrifice, when the intended meaning is that the action is a sacrifice</li>
+<li><code>follow the same street</code> doesn't have the idiomatic meaning in English that the author is looking for, in the way that <code>follow the same route</code> would</li>
+</ol>
+<h3 id="word-choice-and-native-language-interference">Word choice and native language interference</h3>
+<p>A lot of semantic errors boil down to choosing the wrong word - I.E. <code>read</code> instead of <code>saw</code> or <code>street</code> instead of <code>route</code>. Oftentimes even if  the learner knows <em>of</em> the correct word, they don't know that it's the correct word for their specific sentence, and they end up making the choice using information from their first language. Concretely, this usually means using the first available translation of the word with the correct semantics in their first language. Let me give an example.</p>
+<p>The meaning of the Japanese word <code>おもしろい</code> (omoshiroi) encompasses the standard uses of both <code>funny</code> and <code>interesting</code> in English. While these are sufficiently basic words that most learners know better, if you see a native Japanese speaker say something like <code>the comedy was so interesting</code> or <code>the documentary was so funny</code>, there's a good chance that the root of the problem is that both these words map back to <code>おもしろい</code> and they picked the wrong translation. In order to be able to identify errors of this particular type you obviously need to speak the native language of the learner whose errors you're correcting, but if you can identify the word in the learner's native language which has been (mis)translated into the incorrect word it can make explaining the problem much easier (and also may help clarify whether something is actually expressing the intended meaning or not).</p>
+<p><img src="https://joshuatanner.dev/blog/blog-error-categories/omoshiroi_graph.png" alt="Graph of おもしろい mistranslation" /></p>
+<p>This kind of native language interference based on mistranslation seems like the kind of thing that should be fairly accessible to automated approaches as well, although I can only find <a href="https://www.aclweb.org/anthology/D11-1010.pdf">one paper</a> in that vein.</p>
+<h2 id="words-that-don-t-play-well-together">Words that don't play well together</h2>
+<p>This category lumps together a fairly wide range of grammatical phenomena that arguably don't have a lot to do with each other, except that they can all be explained as an incompatibility  between a small number of words or phrases.</p>
+<p>The prototypical example of this in English is the subject/verb agreement error. English requires present tense nouns to match the plurality and/or person of their subject; this is the reason <code>the dog runs</code> is fine, but <code>the dogs runs</code> is not.</p>
+<p><img src="https://joshuatanner.dev/blog/blog-error-categories/sva-error-example.png" alt="SVA error example" /></p>
+<p>Tense agreement is another good one; English often doesn't like it when verbs in a subordinate clause are in a different tense than the verb that owns this clause. In simple terms, this is why you can't say <code>I thought that I will go to the store</code>. This phenomenon also extends to sequences of verbs - changing tense in sequential verbs doesn't work in English.</p>
+<p><img src="https://joshuatanner.dev/blog/blog-error-categories/tense-error-example.png" alt="tense error example" /></p>
+<p>This could even include cases where coreferring nouns and pronouns mismatch, such as plural subjects and singular pronouns like <code>My friends took his dog home,</code> although these can often also be explained as semantic errors.</p>
+<h3 id="case-frames">Case frames</h3>
+<p>Oftentimes, the words that can reasonably be used with a given word are not defined by broad grammatical rules like subject/verb agreement, but by the word itself. Linguistics - in particular, semantics - has a concept for this, which it calls case frames. Wikipedia has some relatively <a href="https://en.wikipedia.org/wiki/Case_grammar">brief</a> <a href="https://en.wikipedia.org/wiki/Frame_semantics_(linguistics)">articles</a> on the topic, but the idea is that a given word (usually a verb) has a finite set of "frames" that it can invoke, each with its own meaning and information about what words can reasonably be used along with that word. This is all very abstract, so let's look at an example (from <a href="https://www.semanticscholar.org/paper/Extracting-Formulaic-Expressions-and-Grammar-and-to-Chen-Chang/c697f852e8f17c96e641858e9f88a0986ccb4b65">this paper</a>):</p>
+<ul>
+<li>afford: V to-inf (afford to pay/miss)</li>
+<li>afford: V n (afford a lawyer/attorney/car/house)</li>
+<li>afford: V n n (afford them the opportunities/protection)</li>
+</ul>
+<p>The <code>V</code> is standing in for the actual verb <code>afford</code> here (because it could be conjugated, I.E. <code>afforded</code>), but what you should take from this is that <code>afford</code> can be used with the following:</p>
+<ol>
+<li>A to-infinitive verb.</li>
+<li>A single noun as a direct object.</li>
+<li>A noun direct object and another noun indirect object.</li>
+</ol>
+<p>Arguably some other parts of speech in English can also have case frames, such as <code>good &lt;at&gt; &lt;ing-verb&gt;</code> ("good at running"). All that said, how is this all relevant to explaining grammatical errors? The answer is that a very large number of errors that would otherwise defy explanation can be reduced to violations of a case frame. For example:</p>
+<blockquote>
+<p>There were so many seats that it took long to finish clearing .</p>
+</blockquote>
+<p>This is perfectly understandable, but sounds weird because the appropriate case frame for <code>take</code> (as well as all the other case frames for <code>take</code>) doesn’t  include an adjective. Instead, this <code>take</code> requires a noun - its direct object. Other examples of case frame violations include things like  <code>I am interesting in...</code>, or <code>...asking you a full refund</code>. <code>interesting</code> has no case frames that accept any other words, and while <code>ask</code> has a case frame that takes a direct object like <code>ask a question</code>, it’s nonsensical here and should be <code>ask for</code>.</p>
+<p>I am not suggesting that every learner should receive a lengthy explanation of case grammar, but I do think that it is a good way to formalize a lot of word incompatibility issues. Even if the term "case frame" never comes up, showing a learner whose mistake has violated a case frame a set of examples from the common case frames for that word is a quick and easy way to communicate acceptable usage. Also, case frames are deeply tied in with preposition usage - the preposition(s) following a verb typically reflect a specific  case frame - and at least from the data we have publically available, preposition errors account for about one in ten errors<sup class="footnote-reference"><a href="#1">1</a></sup>.</p>
+<p>Case frames can be fairly easily computed from a large corpus of text, so there has been some work on using automated methods to extract correct case frames and then using  them to explain errors to learners<sup class="footnote-reference"><a href="#3">3</a></sup>. The University of Kyoto also has a great <a href="https://nlp.ist.i.kyoto-u.ac.jp/index.php?%E4%BA%AC%E9%83%BD%E5%A4%A7%E5%AD%A6%E6%A0%BC%E3%83%95%E3%83%AC%E3%83%BC%E3%83%A0">database of Japanese case frames</a>, which can be searched <a href="https://lotus.kuee.kyoto-u.ac.jp/cf-search/">here</a>, although I know of no equivalent resources for English.</p>
+<p>A full explanation of the possible applications of case frames is beyond the scope of this post, but it's worth noting that while the frames here contain syntactic information about acceptable parts of speech and verb forms, the original idea behind case frames was focused on semantic information, such as the type of object that was semantically acceptable for a verb (I.E. the object of <code>drink</code> is typically a liquid). This gets fairly subjective fairly quickly, but if you like semantic case frames, they can explain quite a few errors that would otherwise fall into the <strong>Semantic errors</strong> category above. The first example about <code>reading a world</code> is a pretty clear semantic case frame violation. A great resource for semantic case frames is <a href="https://framenet.icsi.berkeley.edu/fndrupal/">FrameNet</a>.</p>
+<h2 id="determiners-and-mass-nouns">Determiners and mass nouns</h2>
+<p>This is the one category which corresponds nearly 1:1 with an existing ERRANT category. Determiner errors are hard - with determiner errors accounting for approximately one in ten errors<sup class="footnote-reference"><a href="#1">1</a></sup> - and unfortunately, also often hard to explain. Note that determiners include possessives like <code>your</code>, quantifiers like <code>all</code>, and a few other things, but the main offenders  here are really the articles <code>the</code> and <code>a</code>.</p>
+<p>Let's return to a previous example:</p>
+<blockquote>
+<p>If I look back in the past I can find that computer is following the same street of television, telephon and a lot of other things...</p>
+</blockquote>
+<p>There are two determiner problems here:</p>
+<ol>
+<li>There should be a <code>the</code> after the first <code>that</code> for <code>I find that the computer</code>. As is, it sounds like <code>computer</code> is the direct object of <code>that</code>, and while <code>find</code> has a case frame that accepts a direct object, it's not the right one here.</li>
+<li>Either <code>television</code> or <code>telephone</code> need a <code>the</code> before them. Normally when listing nouns, <code>the</code> comes at the beginning of the list, but it can go either way here because <code>television</code> is a <a href="https://en.wikipedia.org/wiki/Mass_noun">mass noun</a>.</li>
+</ol>
+<p>I bring up mass nouns here because while many determiner errors are resistant to any kind of reasonable explanation, one of the common mistakes that's relatively straightforward to explain is that mass nouns like <code>water</code>, <code>information</code>, etc. don't take <code>a</code> or <code>the</code> in front of them. Outside of that, this is a category of errors that I often find myself unable to explain, so I don't have any sage advice here.</p>
+<p>Most explanations reduce to something along the lines of "<code>the</code> is appropriate for referencing specific things, where <code>a</code> is for non-specific things", but I've yet to see one that doesn't break down or at least stretch pretty thin for edge cases. If you can confidently justify <em>why</em> <code>the</code> is more appropriate than <code>a</code> in the below sentence<sup class="footnote-reference"><a href="#4">4</a></sup> without resorting to "that's just how English is spoken”,  then you know something I don't. It sure seems to me like there's more than one forecast for tomorrow, and the person asking the question isn't asking about one in particular.</p>
+<blockquote>
+<p>What's the forecast for tomorrow?</p>
+</blockquote>
+<p>The last thing I will mention is that in regard to article errors in particular, their frequency can depend heavily on whether the learner's native language includes them or not.</p>
+<h2 id="spelling-errors">Spelling errors</h2>
+<p>This is a fairly trivial category, but I included it because it's such a common one that it felt negligent to leave it out. In the overwhelming majority of cases, all you can really do with spelling errors is provide the correct spelling for the misspelled word, and if you're teaching English apologize for the incredibly inconsistent spelling. That said, there are occasionally errors that look like misspelled words but have something more interesting going on.</p>
+<blockquote>
+<p>As they know about your interestings and personality , it is easy to help you .</p>
+</blockquote>
+<p><code>interestings</code> isn't a word in English, but it sure looks like it could be. One way to look at this is that the person writing this has correctly spelled a word that just happens not to exist, and might benefit more from an explanation of why that word doesn't exist (<code>interesting</code> is an adjective and has no plural) than a simple spelling correction.</p>
+<h2 id="in-closing">In closing</h2>
+<p>The error examples here were all marked as errors by professional annotators in publically available data, but it's not just categorizations of errors that are subjective - even native speakers can disagree about what constitutes an error at all. Additionally, some things marked as errors really just boil down to nonstandard language usage or unusual collocations. <code>fast car</code> is arguably preferable to <code>quick car</code> only because the previous is more common, and <code>musical show</code> only sounds weird to native speakers because English has a noun <code>musical</code> that means the same thing.</p>
+<p>I promised that I would provide rough information about the distribution of these error types at the end of the article, so below is a table containing the <em>percentage of erroneous sentences that had a type of error</em> when I annotated a couple hundred sentences at random. This is not the percentage of errors - that would probably be more useful, but this was much easier to annotate and I was in a hurry - so with overlap it's not going to sum to 100%.</p>
+<table><thead><tr><th>Error Category</th><th>Present in % of examples</th></tr></thead><tbody>
+<tr><td>Semantic error</td><td>24%</td></tr>
+<tr><td>Words that don't play well together</td><td>25%</td></tr>
+<tr><td>Determiners and mass nouns</td><td>19%</td></tr>
+<tr><td>Spelling errors</td><td>22%</td></tr>
+<tr><td>Unclassifiable</td><td>15%</td></tr>
+</tbody></table>
+<p>Thanks for reading until the end. I hope that this was interesting, if not useful.</p>
+<hr/>
+<div class="footnote-definition" id="1"><sup class="footnote-definition-label">1</sup>
+<p><a href="https://www.aclweb.org/anthology/W19-4406.pdf">The BEA-2019 Shared Task on Grammatical Error Correction</a></p>
+</div>
+<div class="footnote-definition" id="2"><sup class="footnote-definition-label">2</sup>
+<p>Example sentences are sampled from <a href="https://www.cl.cam.ac.uk/research/nl/bea2019st/">BEA-2019</a> FCE v2.1 and NUCLE datasets.</p>
+</div>
+<div class="footnote-definition" id="3"><sup class="footnote-definition-label">3</sup>
+<p><a href="https://www.aclweb.org/anthology/P14-1071.pdf">Correcting Preposition Errors in Learner English Using Error Case Frames and Feedback Messages</a> and <a href="https://www.semanticscholar.org/paper/Extracting-Formulaic-Expressions-and-Grammar-and-to-Chen-Chang/c697f852e8f17c96e641858e9f88a0986ccb4b65">Extracting Formulaic Expressions and Grammar and Edit Patterns to Assist Academic Writing</a></p>
+</div>
+<div class="footnote-definition" id="4"><sup class="footnote-definition-label">4</sup>
+<p>Unlike other examples, I made this one up.</p>
+</div>
+
+    </div>
+  </div>
+
+  
+
+			</div>
+
+
+
+			
+			<div class="flex flex-row md:flex-col md:shrink-[0.15] bg-transparent md:h-full md:mr-5 md:mt-10 bg-transparent md:py-0 -my-5 space-x-8 md:space-x-0">
+				<a href="https://github.com/Mindful">
+					<img src="/images/social-github.svg" alt="github" class="w-auto h-auto md:w-2/3 md:h-2/3 pt-2 pb-2"/>
+				</a>
+				<a href="https://www.linkedin.com/in/joshuatanner2">
+					<img src="/images/social-linkedin.svg" alt="linkedin" class="w-auto h-auto md:w-2/3 md:h-2/3 pt-2 pb-2"/>
+				</a>
+				<a href="https://scholar.google.com/citations?user=OqYthY0AAAAJ&h">
+					<img src="/images/social-scholar.svg" alt="google scholar" class="w-auto h-auto md:w-2/3 md:h-2/3 pt-2 pb-2"/>
+				</a>
+				<a href="https://stackexchange.com/users/5319885/mindful">
+					<img src="/images/social-se.svg" alt="stack exchange" class="w-auto h-auto md:w-2/3 md:h-2/3 pt-2 pb-2"/>
+				</a>
+				<a href="https://twitter.com/mindful_jt">
+					<img src="/images/social-twitter.svg" alt="twitter" class="w-auto h-auto md:w-2/3 md:h-2/3 pt-2 pb-2"/>
+				</a>
+				<a href="mailto:mindful.jt@gmail.com">
+					<img src="/images/social-email.svg" alt="email" class="w-auto h-auto md:w-2/3 md:h-2/3 pt-2 pb-2"/>
+				</a>
+			</div>
+			
+
+		</div>
+
+	</body>
+</main>
+</html>
