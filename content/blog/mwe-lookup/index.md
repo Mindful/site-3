@@ -53,7 +53,7 @@ This code takes an average of 28 seconds on my laptop to process (call `search()
 
 ![MWE trie](mwe_trie.png)
 
-Using the MWE trie as our lexicon, we can gather possible MWEs with a depth-first search starting at the root that aborts whenever continuing down a branch of the trie would require constituent words not found in the sentence. That is, we can traverse only the parts of the trie that are subsets of the words in the sentence. 
+Using the MWE trie as our lexicon, we can gather possible MWEs with a depth-first search starting at the root, which aborts when we hit a node for a word missing from the sentence. That is, we can traverse only the parts of the trie that are subsets of the words in the sentence. 
 
 ```python
 class TrieNode:
