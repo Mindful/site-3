@@ -8,12 +8,12 @@ One of the things that struck me about learning Japanese is that once you know a
 
 There are cases in English where you can guess a word you've never seen before, but most of them are just instances of productive affixes like `-ness` as in `kindness` or `re-` in `rewrite`, or words with a recognizable latin root. Arguably, the closest thing English has to words that are guessable from their kanji is compound words. Not all of these are easy to guess from their constituents, but some are: we have `mailbox`, `firefighter`, `waterfall` and more. This matters because easily guessable compound words reduce the effort required for memorizing new vocabulary. For example, [Esperanto](https://en.wikipedia.org/wiki/Esperanto) - the most widely used constructed language - makes extensive use of compounding as well as productive affixes (although we are only talking about compounding today).
 
-The question now is whether there is a decent way to automate the process of generating compounds for a language. This involves both considerations about individual compounds - the combined words have to be semantically related to the idea expressed by the compound in order to be guessable - and the whole vocabulary, since the more compounds a word is used in the less useful it becomes as a hint. So, we need a method that can consider multiple critera while searching for an optimal vocabulary of compounds.
+The question now is whether there is a decent way to automate the process of generating compounds. This involves both considerations about individual compounds - the combined words have to be semantically related to the idea expressed by the compound in order to be guessable - and the whole vocabulary, since the more compounds a word is used in, the less useful it becomes as a hint. So, we need a method that can consider multiple critera while searching for an optimal vocabulary of compounds.
 
 ## As a search problem
 Our starting point is a set of meanings that we want to represent, which we will call ideas and represent with English words. Given this base set of ideas *I*, we can think of the process of constructing a vocabulary as the process of selecting a set of base words *B* from *I* (*B ⊂ I*), and expressing the remaining elements of *I* as compounds of two words from *B*[^vo_1].This results in a set of compounds *C*, where each element is a tuple representing an expressed idea and two base words: *C = { (i, b1, b2) ∣ b1 ∈ B, b2 ∈ B, i ∈ I }*.
 
-This is a little bit confusing, in part because we express ideas as English words, but we just have to remember that any given idea (word) could be also be expressed as a compound. For example, say that *I* was the three words below:
+For example, say that *I* was the three words below:
 
 > sky
 
@@ -103,6 +103,6 @@ I am probably not going to take this project all the way to a paper, but I do th
 
 <hr/>
 
-[^vo_1]: Obviously compounds of more than two words exist, but two-word compounds are much more common, and limiting ourselves to compounds of only two words helps keeps the problem framing reasonable.
+[^vo_1]: Obviously compounds of more than two words exist, but two-word compounds are much more common, and limiting ourselves to compounds of only two words helps keeps the problem framing manageable.
 [^vo_2]: The exception being Toki Pona, with only a little more than a hundred words.
 [^vo_3]: There is a natural tension between minimizing base words used in many compounds and maximizing the number of compounds, because *I* is finite - the more ideas from *I* we express as compounds, the fewer base words we have to choose from for making any given compound.
