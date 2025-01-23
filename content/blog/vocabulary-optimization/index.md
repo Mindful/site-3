@@ -27,7 +27,7 @@ I would say that the optimal outcome here is to take `sky` and `water` as base w
 
 > *C* = {(rain, sky, water)}
 
-Unfortunately, for most actual languages *I* is going to be thousands or tens of thousands of elements[^vo_2], making it infeasible to do this manually. However, given *I*, the process of producing *B* and *C* can be thought of as a lengthy sequence of choices, where at each step we choose to either copy an element of *I* to *B*, or to express it as a compound of elements from *B* and add that combination to *C*. This means that while the decision space is very large, we can search it automatically. We just need some criteria to score possible solutions.
+Unfortunately, for most actual languages *I* is going to be thousands or tens of thousands of elements[^vo_2], making it infeasible to do this manually. However, *B* and *C* from *I* can be thought of as a lengthy sequence of choices, where at each step we choose to either copy an element of *I* to *B*, or to express it as a compound of elements from *B* and add that combination to *C*. This means that while the decision space is very large, we can search it automatically. We just need some criteria to score possible results.
 
 For example, a scoring function *S(I, B, C)* could try to:
 1. Maximize the quality of each compound in *C*
@@ -46,7 +46,7 @@ MCTS essentially consists of four steps repeated iteratively.
 3. **Simulation:** repeatedly generate children to build out a transient subtree of the aforementioned child node, up to completion or a maximum depth, and score it.
 4. **Backpropagation:** update the scores of each node along the path to the child node generated in step #2 based on the result of the simulation.
 
-The idea is that if you have a good scoring function and do a decent job tuning MCTS hyperparameters to balance exploration and exploitation, the above process will find a path down the tree that leads to a high-scoring state. In our case, that means a good compound vocabulary, built by the choices made at each node in the path. To make implementation simpler, I only tried to optimize compound selection and creation, fixing the target number of generated compounds as a percentage of the size of *I*. That is, I only tried to optimize #1 and #2 of the criteria from the end of the previous section. Consequently, each node in the MCTS tree corresponded to selecting one yet unused idea from *I*, choosing two base words from *B* to combine, and adding the resulting compound to *C*. 
+The idea is that if you have a good scoring function and do a decent job tuning hyperparameters to balance exploration and exploitation, MCTS will find a path down the tree that leads to a high-scoring state. In our case, that means a good compound vocabulary, built by the choices made at each node in the path. To make implementation simpler, I only tried to optimize compound selection and creation, fixing the target number of generated compounds as a percentage of the size of *I*. That is, I only tried to optimize #1 and #2 of the criteria from the end of the previous section. Consequently, each node in the MCTS tree corresponded to selecting one yet unused idea from *I*, choosing two base words from *B* to combine, and adding the resulting compound to *C*. 
 
 
 ### Generating and Evaluating Compounds
