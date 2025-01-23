@@ -49,7 +49,7 @@ class NaiveApproach:
 ```
 
 
-This code takes an average of 28 seconds on my laptop to process (call `search()` on) 1,000 sentences. Fortunately, we can make this much faster using a [trie](https://en.wikipedia.org/wiki/trie)[^1]. Tries are prefix trees most commonly built out of characters, but because we are dealing with words and not characters, we will build ours out of words. 
+This code takes an average of 28 seconds on my laptop to process (call `search()` on) 1,000 sentences. Fortunately, we can make this much faster using a [trie](https://en.wikipedia.org/wiki/trie)[^mwel_1]. Tries are prefix trees most commonly built out of characters, but because we are dealing with words and not characters, we will build ours out of words. 
 
 ![MWE trie](mwe_trie.png)
 
@@ -226,7 +226,7 @@ The final result:
 
 <hr/>
 
-[^1]: Note that while the trie-based approach runs much faster on average, its theoretical worst case runtime is the same as the naive approach. However, getting anywhere near this upper bound with the trie would require a sentence containing most or all of the MWEs in the lexicon, which is not realistic.
+[^mwel_1]: Note that while the trie-based approach runs much faster on average, its theoretical worst case runtime is the same as the naive approach. However, getting anywhere near this upper bound with the trie would require a sentence containing most or all of the MWEs in the lexicon, which is not realistic.
 
 
 

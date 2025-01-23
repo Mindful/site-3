@@ -11,7 +11,7 @@ There are cases in English where you can guess a word you've never seen before, 
 The question now is whether there is a decent way to automate the process of generating compounds for a language. This involves both considerations about individual compounds - the combined words have to be semantically related to the idea expressed by the compound in order to be guessable - and the whole vocabulary, since the more compounds a word is used in the less useful it becomes as a hint. So, we need a method that can consider multiple critera while searching for an optimal vocabulary of compounds.
 
 ## As a search problem
-Our starting point is a set of meanings that we want to represent, which we will call ideas and represent with English words. Given this base set of ideas *I*, we can think of the process of constructing a vocabulary as the process of selecting a set of base words *B* from *I* (*B ⊂ I*), and expressing the remaining elements of *I* as compounds of two words from *B*[^1].This results in a set of compounds *C*, where each element is a tuple representing an expressed idea and two base words: *C = { (i, b1, b2) ∣ b1 ∈ B, b2 ∈ B, i ∈ I }*.
+Our starting point is a set of meanings that we want to represent, which we will call ideas and represent with English words. Given this base set of ideas *I*, we can think of the process of constructing a vocabulary as the process of selecting a set of base words *B* from *I* (*B ⊂ I*), and expressing the remaining elements of *I* as compounds of two words from *B*[^vo_1].This results in a set of compounds *C*, where each element is a tuple representing an expressed idea and two base words: *C = { (i, b1, b2) ∣ b1 ∈ B, b2 ∈ B, i ∈ I }*.
 
 This is a little bit confusing, in part because we express ideas as English words, but we just have to remember that any given idea (word) could be also be expressed as a compound. For example, say that *I* was the three words below:
 
@@ -27,12 +27,12 @@ I would say that the optimal outcome here is to take `sky` and `water` as base w
 
 > *C* = {(rain, sky, water)}
 
-Unfortunately, for most actual languages *I* is going to be thousands or tens of thousands of elements[^2], making it infeasible to do this manually. However, given *I*, the process of producing *B* and *C* can be thought of as a lengthy sequence of choices, where at each step we choose to either copy an element of *I* to *B*, or to express it as a compound of elements from *B* and add that combination to *C*. This means that while the decision space is very large, we can search it automatically. We just need some criteria to score possible solutions.
+Unfortunately, for most actual languages *I* is going to be thousands or tens of thousands of elements[^vo_2], making it infeasible to do this manually. However, given *I*, the process of producing *B* and *C* can be thought of as a lengthy sequence of choices, where at each step we choose to either copy an element of *I* to *B*, or to express it as a compound of elements from *B* and add that combination to *C*. This means that while the decision space is very large, we can search it automatically. We just need some criteria to score possible solutions.
 
 For example, a scoring function *S(I, B, C)* could try to:
 1. Maximize the quality of each compound in *C*
 2. Minimize the number of base words used in a large number of compounds
-3. Maximize the number of compounds to the extent possible without violating #2[^3]
+3. Maximize the number of compounds to the extent possible without violating #2[^vo_3]
 
 
 ## My attempt (Monte Carlo Tree Search)
@@ -103,6 +103,6 @@ I am probably not going to take this project all the way to a paper, but I do th
 
 <hr/>
 
-[^1]: Obviously compounds of more than two words exist, but two-word compounds are much more common, and limiting ourselves to compounds of only two words helps keeps the problem framing reasonable.
-[^2]: The exception being Toki Pona, with only a little more than a hundred words.
-[^3]: There is a natural tension between minimizing base words used in many compounds and maximizing the number of compounds, because *I* is finite - the more ideas from *I* we express as compounds, the fewer base words we have to choose from for making any given compound.
+[^vo_1]: Obviously compounds of more than two words exist, but two-word compounds are much more common, and limiting ourselves to compounds of only two words helps keeps the problem framing reasonable.
+[^vo_2]: The exception being Toki Pona, with only a little more than a hundred words.
+[^vo_3]: There is a natural tension between minimizing base words used in many compounds and maximizing the number of compounds, because *I* is finite - the more ideas from *I* we express as compounds, the fewer base words we have to choose from for making any given compound.

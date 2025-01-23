@@ -16,12 +16,12 @@ There isn't really a standard set of categories for grammatical errors, so categ
 
 ![ERRANT classification examples](errant-classification-examples.png)
 
-ERRANT is a great tool for analysis, but its categories are not exceptionally useful for explaining to someone why their error is an error, and it classifies about 20% of errors as `OTHER`[^1]. Note that this prevalence of `OTHER` type errors is not a reflection of some kind of failure on ERRANT's part; some portion of errors simply do not fit cleanly into any kind of category.
+ERRANT is a great tool for analysis, but its categories are not exceptionally useful for explaining to someone why their error is an error, and it classifies about 20% of errors as `OTHER`[^ec_1]. Note that this prevalence of `OTHER` type errors is not a reflection of some kind of failure on ERRANT's part; some portion of errors simply do not fit cleanly into any kind of category.
 
 The theoretical linguistics community has a wider variety of categorizations to offer, although most are still aimed at analysis, and I don't know of any that specifically target being comprehensible for language learners or are widely used in a teaching context. If you do, please let me know.
 
 ## Some errors are beyond help
-As the prevalence of ERRANT's `OTHER` category hinted at, some errors are simply not classifiable or explainable. This is most often when the content produced by a learner is so garbled that it looks near random, and restoring it to a correct state would require something closer to a rewrite. Below are some excerpts taken from publically available grammatical error correction data[^2]:
+As the prevalence of ERRANT's `OTHER` category hinted at, some errors are simply not classifiable or explainable. This is most often when the content produced by a learner is so garbled that it looks near random, and restoring it to a correct state would require something closer to a rewrite. Below are some excerpts taken from publically available grammatical error correction data[^ec_2]:
 
 > Unfortunately I had ever been in the US so I have any idea about how much money I will probably need and about what kind of clothes I have to take with me.
 > 
@@ -104,16 +104,16 @@ Arguably some other parts of speech in English can also have case frames, such a
 
 This is perfectly understandable, but sounds weird because the appropriate case frame for `take` (as well as all the other case frames for `take`) doesn’t  include an adjective. Instead, this `take` requires a noun - its direct object. Other examples of case frame violations include things like  `I am interesting in...`, or `...asking you a full refund`. `interesting` has no case frames that accept any other words, and while `ask` has a case frame that takes a direct object like `ask a question`, it’s nonsensical here and should be `ask for`. 
 
-I am not suggesting that every learner should receive a lengthy explanation of case grammar, but I do think that it is a good way to formalize a lot of word incompatibility issues. Even if the term "case frame" never comes up, showing a learner whose mistake has violated a case frame a set of examples from the common case frames for that word is a quick and easy way to communicate acceptable usage. Also, case frames are deeply tied in with preposition usage - the preposition(s) following a verb typically reflect a specific  case frame - and at least from the data we have publically available, preposition errors account for about one in ten errors[^1].
+I am not suggesting that every learner should receive a lengthy explanation of case grammar, but I do think that it is a good way to formalize a lot of word incompatibility issues. Even if the term "case frame" never comes up, showing a learner whose mistake has violated a case frame a set of examples from the common case frames for that word is a quick and easy way to communicate acceptable usage. Also, case frames are deeply tied in with preposition usage - the preposition(s) following a verb typically reflect a specific  case frame - and at least from the data we have publically available, preposition errors account for about one in ten errors[^ec_1].
 
-Case frames can be fairly easily computed from a large corpus of text, so there has been some work on using automated methods to extract correct case frames and then using  them to explain errors to learners[^3]. The University of Kyoto also has a great [database of Japanese case frames](https://nlp.ist.i.kyoto-u.ac.jp/index.php?%E4%BA%AC%E9%83%BD%E5%A4%A7%E5%AD%A6%E6%A0%BC%E3%83%95%E3%83%AC%E3%83%BC%E3%83%A0), which can be searched [here](https://lotus.kuee.kyoto-u.ac.jp/cf-search/), although I know of no equivalent resources for English.
+Case frames can be fairly easily computed from a large corpus of text, so there has been some work on using automated methods to extract correct case frames and then using  them to explain errors to learners[^ec_3]. The University of Kyoto also has a great [database of Japanese case frames](https://nlp.ist.i.kyoto-u.ac.jp/index.php?%E4%BA%AC%E9%83%BD%E5%A4%A7%E5%AD%A6%E6%A0%BC%E3%83%95%E3%83%AC%E3%83%BC%E3%83%A0), which can be searched [here](https://lotus.kuee.kyoto-u.ac.jp/cf-search/), although I know of no equivalent resources for English.
 
 A full explanation of the possible applications of case frames is beyond the scope of this post, but it's worth noting that while the frames here contain syntactic information about acceptable parts of speech and verb forms, the original idea behind case frames was focused on semantic information, such as the type of object that was semantically acceptable for a verb (I.E. the object of `drink` is typically a liquid). This gets fairly subjective fairly quickly, but if you like semantic case frames, they can explain quite a few errors that would otherwise fall into the **Semantic errors** category above. The first example about `reading a world` is a pretty clear semantic case frame violation. A great resource for semantic case frames is [FrameNet](https://framenet.icsi.berkeley.edu/fndrupal/).
 
 
 ## Determiners and mass nouns
 
-This is the one category which corresponds nearly 1:1 with an existing ERRANT category. Determiner errors are hard - with determiner errors accounting for approximately one in ten errors[^1] - and unfortunately, also often hard to explain. Note that determiners include possessives like `your`, quantifiers like `all`, and a few other things, but the main offenders  here are really the articles `the` and `a`. 
+This is the one category which corresponds nearly 1:1 with an existing ERRANT category. Determiner errors are hard - with determiner errors accounting for approximately one in ten errors[^ec_1] - and unfortunately, also often hard to explain. Note that determiners include possessives like `your`, quantifiers like `all`, and a few other things, but the main offenders  here are really the articles `the` and `a`. 
 
 Let's return to a previous example:
 > If I look back in the past I can find that computer is following the same street of television, telephon and a lot of other things...
@@ -125,7 +125,7 @@ There are two determiner problems here:
 
 I bring up mass nouns here because while many determiner errors are resistant to any kind of reasonable explanation, one of the common mistakes that's relatively straightforward to explain is that mass nouns like `water`, `information`, etc. don't take `a` or `the` in front of them. Outside of that, this is a category of errors that I often find myself unable to explain, so I don't have any sage advice here.
 
-Most explanations reduce to something along the lines of "`the` is appropriate for referencing specific things, where `a` is for non-specific things", but I've yet to see one that doesn't break down or at least stretch pretty thin for edge cases. If you can confidently justify _why_ `the` is more appropriate than `a` in the below sentence[^4] without resorting to "that's just how English is spoken”,  then you know something I don't. It sure seems to me like there's more than one forecast for tomorrow, and the person asking the question isn't asking about one in particular. 
+Most explanations reduce to something along the lines of "`the` is appropriate for referencing specific things, where `a` is for non-specific things", but I've yet to see one that doesn't break down or at least stretch pretty thin for edge cases. If you can confidently justify _why_ `the` is more appropriate than `a` in the below sentence[^ec_4] without resorting to "that's just how English is spoken”,  then you know something I don't. It sure seems to me like there's more than one forecast for tomorrow, and the person asking the question isn't asking about one in particular. 
 
 > What's the forecast for tomorrow?
 
@@ -160,11 +160,11 @@ Thanks for reading until the end. I hope that this was interesting, if not usefu
 
 <hr/>
 
-[^1]: [The BEA-2019 Shared Task on Grammatical Error Correction](https://www.aclweb.org/anthology/W19-4406.pdf)
+[^ec_1]: [The BEA-2019 Shared Task on Grammatical Error Correction](https://www.aclweb.org/anthology/W19-4406.pdf)
 
-[^2]: Example sentences are sampled from [BEA-2019](https://www.cl.cam.ac.uk/research/nl/bea2019st/) FCE v2.1 and NUCLE datasets.
+[^ec_2]: Example sentences are sampled from [BEA-2019](https://www.cl.cam.ac.uk/research/nl/bea2019st/) FCE v2.1 and NUCLE datasets.
 
-[^3]: [Correcting Preposition Errors in Learner English Using Error Case Frames and Feedback Messages](https://www.aclweb.org/anthology/P14-1071.pdf) and [Extracting Formulaic Expressions and Grammar and Edit Patterns to Assist Academic Writing](https://www.semanticscholar.org/paper/Extracting-Formulaic-Expressions-and-Grammar-and-to-Chen-Chang/c697f852e8f17c96e641858e9f88a0986ccb4b65)
+[^ec_3]: [Correcting Preposition Errors in Learner English Using Error Case Frames and Feedback Messages](https://www.aclweb.org/anthology/P14-1071.pdf) and [Extracting Formulaic Expressions and Grammar and Edit Patterns to Assist Academic Writing](https://www.semanticscholar.org/paper/Extracting-Formulaic-Expressions-and-Grammar-and-to-Chen-Chang/c697f852e8f17c96e641858e9f88a0986ccb4b65)
 
-[^4]: Unlike other examples, I made this one up.
+[^ec_4]: Unlike other examples, I made this one up.
 
