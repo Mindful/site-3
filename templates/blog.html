@@ -1,10 +1,24 @@
 {% extends "base.html" %}
 {% import "macros/blog.html" as blog %}
 
-
 {% block content %}
-  <!-- If you are using pagination, section.pages will be empty. You need to use the paginator object -->  
-  {% for page in section.pages %}
-    {{ blog::post(page=page) }}
-  {% endfor %}
+<div>
+    {% for page in paginator.pages %}
+        <article>
+            {{ blog::post(page=page) }}
+        </article>
+    {% endfor %}
+</div>
+
+{% if paginator.next or paginator.previous %}
+<div class="flex justify-center mt-2 -mb-1">
+      {% if paginator.previous %}
+        <a class="bg-green text-white py-3 w-48 text-center" style="box-shadow: 0px 3px 10px 0px #4d4d4d;" href="{{ paginator.previous }}">‹ PREVIOUS</a>
+      {% endif %}
+      {% if paginator.next %}
+        <a class="bg-green text-white py-3 w-48 text-center" style="box-shadow: 0px 3px 10px 0px #4d4d4d;" href="{{ paginator.next }}">NEXT ›</a>
+      {% endif %}
+</div>
+{% endif %}
+
 {% endblock content %}
