@@ -1,13 +1,18 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div>
-    <ul>
-        {% for page in section.pages %}
-            <li>
-                <a href="{{ page.permalink }}">{{ page.title }}</a>
-            </li>
-        {% endfor %}
-    </ul>
+
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+  {% for page in section.pages %}
+  <a href="{{ page.permalink }}" class="p-4 bg-white shadowed block">
+    <div>
+      <p class="text-lg font-semibold">{{ page.title }}</p>
+      <p class="text-sm mt-2">{{ page.date }}</p>
+    </div>
+  </a>
+  {% endfor %}
 </div>
+
+
+
 {% endblock content %}
