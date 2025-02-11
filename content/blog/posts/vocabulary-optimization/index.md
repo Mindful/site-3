@@ -50,22 +50,22 @@ The idea is that if you have a good scoring function and do a decent job tuning 
 
 
 ### Generating and Evaluating Compounds
-In order to make sure that the words combined to generate compounds were semantically related to the idea that they represented, I used [ConceptNet](https://conceptnet.io/) to gather candidates for words to combine. ConceptNet is a knowledge graph connecting English word nodes with edges representing semantic relationships; traversing the edges connected to the idea for a compound to find base words to combine ensures there is an at least somewhat intuitive relationship between the idea expressed by the compound and the words that compose it. That is, we want something self-explanatory like `firefighter` and not something like `honeymoon`.
+In order to make sure that the words combined to generate compounds were semantically related to the idea that they represented, I used [ConceptNet](https://conceptnet.io/) to gather candidates for words to combine. ConceptNet is a knowledge graph connecting English word nodes with edges representing semantic relationships; traversing the edges connected to the idea for a compound to find base words to combine ensures there is some kind of semantic relationship between the idea expressed by the compound and the words that compose it. That is, we want something self-explanatory like `firefighter` and not something like `honeymoon`.
 
 ![Concept net](concept_net.png)
 
-Concretely, for each generation, an idea was chosen randomly from ideas in *I*, and words to be combined into a compound were chosen randomly from the subset of candidates gathered from ConceptNet that were also in *I* (any words chosen this way are added to *B* if not already also in *B*). I experimented with using scoring to choose better child nodes during expansion and simulation, but this dramatically slowed down processing. Also, one of the strengths of MCTS is that theoretically scoring can be done only at the end of simulation and then backpropagation will take care of individual node scores.
+Concretely, for each generation, an idea is chosen randomly from ideas in *I*, and words to be combined into a compound are chosen randomly from the subset of candidates gathered from ConceptNet that were also in *I*. Any words chosen this way are added to *B*. I experimented with using scoring to choose better child nodes during expansion and simulation, but this dramatically slowed down processing. Also, theoretically scoring can be done only at the end of simulation and then backpropagation will take care of individual node scores, so I scored only at the end of simulation.
 
-Developing a good scoring/reranking function for evaluating word combinations as compound words is a difficult task on its own, so I opted for the simplest thing I could think of: word vector cosine similarity of the words used in the compound to the word representing the idea. That is, the score was the average of cosine similarity for the two base words and a relation score based on manually assigned values for types of relations in ConceptNet (I.E. x `is a` y should score higher than x `desires` y, etc.). So we end up with, *score(compound) = (similarity(b1, i) + similarity(b2, i) + relationScore) / 3*. 
+Developing a good scoring function for evaluating word combinations as compound words is a difficult task on its own, so I opted for the simplest thing I could think of: word vector cosine similarity of the words used in the compound to the word representing the idea. That is, the score was the average of cosine similarity for the two base words and a relation score based on manually assigned values for types of relations in ConceptNet (I.E. x `is a` y should score higher than x `desires` y, etc.). So we end up with, *score(compound) = (similarity(b1, i) + similarity(b2, i) + relationScore) / 3*. 
 
 
 ### MCTS Scoring function
-The scoring function used for MCTS needs to be able to score states resulting from a given path down the tree, as opposed to specific nodes or compounds. In this case, a state is just a set of generated compounds *C*, along with counts for each base word in *B*, where we define base words as any words used in compounds. Concretely, I tried to optimize criteria #1 (compound quality) and #2 (minimal base words with too many uses) from the section at the start of this post by summing the score for each compound and dividing it by the sum of squares for base word usage counts. 
+The scoring function used for MCTS needs to be able to score states resulting from a given path down the tree, as opposed to specific nodes or compounds. In this case, a state is just a set of generated compounds *C*, along with counts for each base word in *B*, where we define base words as any words used in compounds. I tried to optimize the aforementioned criteria #1 (compound quality) and #2 (minimal base words with too many uses) by computing the score as the sum of the score for each compound divided by the sum of squares for base word usage counts. 
 
 ![Scoring function](score_func.png)
 
 ## Results
-As is likely obvious from my explanation up until now, I took some shortcuts with implementation in order to get to a working proof of concept. Consequently, between a fairly flimsy scoring function and not having enough compute on my laptop to run large numbers of MCTS iterations, I did not end up with something I would call a good solution to the problem. However, the process did yield a few outputs that are worth sharing. The code is available [here](https://github.com/Mindful/wordgen) for anyone interested in trying to do this better.
+As is likely obvious from my explanation up until now, I took some shortcuts with implementation in order to get to a working proof of concept. Consequently, between a fairly flimsy scoring function and not having enough compute on my laptop to run large numbers of MCTS iterations, I did not end up with something I would call a good solution to the problem. However, the process did yield a few outputs that I think are worth sharing. The code is available [here](https://github.com/Mindful/wordgen) for anyone interested in trying to do this better.
 
 ### Cherrypicked Outputs
 These are all actual outputs of the process, although the combinations are technically unordered.
@@ -85,20 +85,20 @@ Some of the combinations are kind of abstract, like `act+wedding` for `marriage`
 - kitchen+meal = cook 
 - chicken+male = hen 
 
-Full results can be seen [here](https://github.com/Mindful/wordgen/blob/main/results/generations_simple.txt).
+Like many of the other outputs, these three are made up of words that show up in similar contexts to the idea word but are not a good fit to express the intended idea, which is a symptom of using a scoring method based on word vectors (distributional semantics). Full results can be seen [here](https://github.com/Mindful/wordgen/blob/main/results/generations_simple.txt).
 
 
 ## Final Thoughts
-A robust implementation of MCTS for generating compound words, including good scoring function(s), could probably be its own paper. I think to get something working well, you would need:
+A robust implementation of MCTS for generating compound words, including good scoring function(s), could probably be its own paper. I think to get something working well, you would at least need:
 - A good compound scoring function
-- An MCTS implementation that could also explore the number of ideas from *I* expressed as compounds
+- An MCTS implementation that could also explore the number of ideas expressed as compounds
 - A lot of compute
 
 You might also want:
 - Intermediate scoring to be smarter about generating child nodes in MCTS (I.E. smarter than completely random)
 - More tools than just ConceptNet for finding words with semantic relations to the idea being expressed
 
-I am probably not going to take this project all the way to a paper, but I do think it's an interesting idea that has the potential to be useful for artificial language construction. It would be great if someone wanted to pick up the torch and flesh this out though - and if you happen to be that person, don't hesitate to reach out.
+I am not going to take this project all the way to a paper, but I do think it's an interesting project that has the potential to be useful for artificial language construction. It would be great if someone wanted to pick up the torch and flesh this out though - and if you happen to be that person, don't hesitate to reach out.
 
 
 <hr/>
