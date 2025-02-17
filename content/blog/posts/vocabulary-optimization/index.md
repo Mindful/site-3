@@ -1,6 +1,6 @@
 +++
 slug = "/blog/vocabulary-optimization"
-date = "2025-01-23"
+date = "2025-02-16"
 title = "Generating compound words for artificial languages"
 +++
 
@@ -27,7 +27,7 @@ I would say that the optimal outcome here is to take `sky` and `water` as base w
 
 > *C* = {(rain, sky, water)}
 
-Unfortunately, for most actual languages *I* is going to be thousands or tens of thousands of elements[^vo_2], making it infeasible to do this manually. However, *B* and *C* from *I* can be thought of as a lengthy sequence of choices, where at each step we choose to either copy an element of *I* to *B*, or to express it as a compound of elements from *B* and add that combination to *C*. This means that while the decision space is very large, we can search it automatically. We just need some criteria to score possible results.
+Unfortunately, for most actual languages *I* is going to be thousands or tens of thousands of elements[^vo_2], making it infeasible to do this manually. However, building *B* and *C* from *I* can be thought of as a lengthy sequence of choices, where at each step we choose to either copy an element of *I* to *B*, or to express it as a compound of elements from *B* and add that combination to *C*. This means that while the decision space is very large, we can search it automatically. We just need some criteria to score possible results.
 
 For example, a scoring function *S(I, B, C)* could try to:
 1. Maximize the quality of each compound in *C*
@@ -98,7 +98,7 @@ You might also want:
 - Intermediate scoring to be smarter about generating child nodes in MCTS (I.E. smarter than completely random)
 - More tools than just ConceptNet for finding words with semantic relations to the idea being expressed
 
-I am not going to take this project all the way to a paper, but I do think it's an interesting project that has the potential to be useful for artificial language construction. It would be great if someone wanted to pick up the torch and flesh this out though - and if you happen to be that person, don't hesitate to reach out.
+I am not going to take this project all the way to a paper, but I do think it's an interesting project that has the potential to be useful for artificial language construction. If you happen to want to pick up the torch and flesh this out though, please don't hesitate to reach out.
 
 
 <hr/>
