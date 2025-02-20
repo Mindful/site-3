@@ -26,6 +26,7 @@
  	<meta property="og:site_name" content="Joshua Tanner" />
 </head>
 
+{% if get_env(name="env", default="dev") == "prod" %}
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-DNWSN122JK"></script>
 <script>
@@ -35,6 +36,7 @@
 
   gtag('config', 'G-DNWSN122JK');
 </script>
+{% endif %}
 
 <main>
 	<nav class="flex bg-green p-0 h-16" style="box-shadow: 0px 3px 10px 0px #4d4d4d;">

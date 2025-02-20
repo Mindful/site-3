@@ -11,6 +11,8 @@ jobs:
       - name: build_and_deploy
         uses: shalzz/zola-deploy-action@v0.19.1
         env:
+          # env variable (so we include google analytics)
+          env: prod
           # Target branch
           PAGES_BRANCH: gh-pages
           # if publishing to the same repo, use the automatic token
