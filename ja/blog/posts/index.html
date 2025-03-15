@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+	
+		
+		
+	
+
+	
+		
+		
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<link rel="stylesheet" href="https://joshuatanner.dev/styles/styles.css" />
+	<link rel="icon" type="image/x-icon" href="/images/favicon.png">
+	<meta charset="UTF-8">
+
+	<title>Blog</title>
+	<meta name="og:title" content="Blog" />
+	<meta name="twitter:title" content="Blog" />
+
+	<meta name="description" content="自然言語処理、バックエンド開発、そしてちょっぴり言語学" />
+  <meta name="og:description" content="自然言語処理、バックエンド開発、そしてちょっぴり言語学" />
+ 	<meta name="twitter:description" content="自然言語処理、バックエンド開発、そしてちょっぴり言語学" />
+
+ 	<meta property="og:url" content="https://joshuatanner.dev/ja/blog/posts/" />
+ 	<meta property="og:type" content="website" />
+ 	<meta property="og:site_name" content="Joshua Tanner" />
+
+ 	<meta property="og:image" content="/images/face.png" />
+	<meta property="og:image:alt" content="ジョシュア・ターナーの個人サイト" />
+
+<meta name="twitter:image" content="/images/face.png" />
+<meta name="twitter:image:alt" content="ジョシュア・ターナーの個人サイト" />
+</head>
+
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-DNWSN122JK"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-DNWSN122JK');
+</script>
+
+
+<main>
+	<nav class="flex bg-green p-0 h-16" style="box-shadow: 0px 3px 10px 0px #4d4d4d;">
+		<div class="flex items-center flex-shrink-0 text-white mr-6 ml-6">
+			<!-- Replace LangLink with a tag -->
+			<a href="https://joshuatanner.dev/ja/" class="text-white"><span>Joshua Tanner</span></a>
+		</div>
+		<div style="border-left: 1px solid white; height: 100%;" class="mr-6"></div>
+
+		<div class="flex w-full items-center text-white">
+
+			<div class="hidden sm:flex">
+				<a href='https://joshuatanner.dev/ja/translation/' class="text-white mr-4">TRANSLATION</a>
+				<a href='https://joshuatanner.dev/ja/blog/' class="text-white">BLOG</a>
+			</div>
+
+			<div class="relative content-center -ml-4 sm:hidden">
+				<input type="checkbox" id="sortbox" class="toggler"/>
+				<div class="hamburger"><div></div></div>
+
+				<div id="sortboxmenu" class="absolute mt-2 right-1 top-full min-w-max shadow rounded hidden bg-gray-300 border border-gray-400 transition delay-75 ease-in-out z-10">
+					<ul class="block text-right text-gray-900">
+						<li><a href='https://joshuatanner.dev/ja/translation/' class="block px-3 py-2 bg-green text-white">TRANSLATION</a></li>
+						<li><a href='https://joshuatanner.dev/ja/blog/' class="block px-3 py-2 bg-green text-white">BLOG</a></li>
+					</ul>
+				</div>
+			</div>
+
+			
+				
+					
+				
+				<!-- If the current page is in Japanese, show link to English -->
+				<a href="https://joshuatanner.dev/blog/posts" class="absolute md:right-8 right-4">English</a>
+			
+
+		</div>
+	</nav>
+
+	<body>
+
+		<div class="flex md:flex-row flex-col px-5 md:pr-0 items-center md:items-start">
+			<div class="flex m-10 w-full flex-col">
+				
+<div>
+    
+        <article>
+            
+  <div class="flex p-8 sm:p-14 bg-white shadowed w-full flex-col mb-6">
+    <header class="text-3xl md:text-4xl my-4">
+	    
+	      <a href="https://joshuatanner.dev/ja/blog/posts/blog-vocabulary-optimization/">【玉ねぎ＝泣く野菜】人工言語のための複合語生成</a>
+		
+    </header>
+    <span class="mb-2">2025-02-16</span>
+    <div class="blogpost">
+      <p>日本語を学んでいく中で特に印象的だったのは、覚えた漢字が一定数を超えると、それまで見たことのない単語でも読めたり意味を推測できたりすることです。これは漢字そのものが意味を持つから可能になることです。たとえば、建物は建つ物、自信は自分を信じること、などのように漢字から意味がわかる単語が少なからずあります。初めて耳にする言葉でも、その漢字を推測して意味に辿り着けることがあります。</p>
+<p>英語でも見たことのない単語の意味を推測できる場合はありますが、主に<code>-ness</code>（例：kindness）や<code>re-</code>（例：rewrite）といった生産的な<sup class="footnote-reference"><a href="#vo_4">1</a></sup>接辞か、認識しやすいラテン語由来の語根を持つ単語です。英語において、漢字から推測可能な単語に最も近いのは複合語だと思っています。すべてが推測可能というわけではありませんが、<code>mailbox</code>（郵便箱）、<code>firefighter</code>（消防士）、<code>waterfall</code>（滝）など、わかりやすいものもあります。この話がなぜ大事なのかというと、こういった推測しやすい複合語が多いほど新しい語彙を覚える負担が減るからです。たとえば、<a href="https://ja.wikipedia.org/wiki/%E3%82%A8%E3%82%B9%E3%83%9A%E3%83%A9%E3%83%B3%E3%83%88">エスペラント</a>（最も広く使われている人工言語）は、生産的な接辞と複合語を広範に活用しています（今回話すのは複合語のみですが）。</p>
+<p>さて、本題は複合語を自動生成する方法があるかどうかですね。複合語を構成する単語がその複合語の意味と関連している必要があります。同時に、語彙全体も考える必要があります。1つの単語が多くの複合語に使われすぎると、手がかりとしての役割が薄れます。そのため、複数の基準を考慮しながら、最適な複合語語彙を見つける方法が必要になります。</p>
+<h2 id="tan-suo-wen-ti-tositenozhuo-efang">探索問題としての捉え方</h2>
+<p>まず初めに、単語（複合語を含む）で表現したい意味の集合を考えます。これらを「アイデア」と呼び、英単語で表現します。このアイデアの集合 を<em>I</em>とし、 語彙を構築するプロセスは、<em>I</em> から基礎語の集合 <em>B</em> を選び（<em>B ⊂ I</em>）、<em>I</em> の残りの要素を <em>B</em> の2つの単語を組み合わせた複合語として表現することと考えられます<sup class="footnote-reference"><a href="#vo_1">2</a></sup>。これにより、複合語の集合 <em>C</em> が生まれます。<em>C</em> の各要素は、アイデアと2つの基礎語を表すタプルになります：<em>C = { (i, b1, b2) ∣ b1 ∈ B, b2 ∈ B, i ∈ I }</em>。</p>
+<p>たとえば、以下のような3つの単語が <em>I</em> に含まれているとします：</p>
+<blockquote>
+<p>sky</p>
+</blockquote>
+<blockquote>
+<p>water</p>
+</blockquote>
+<blockquote>
+<p>rain</p>
+</blockquote>
+<p>この場合、最適な結果は <code>sky</code> と <code>water</code> を基礎語に選び、<code>rain</code> を <code>skywater</code> という複合語で表現することだと言えるでしょう。つまり、基礎語の集合は以下のようになります：</p>
+<blockquote>
+<p><em>B</em> = {sky, water}</p>
+</blockquote>
+<p>そして、それらが組み合わさって以下の複合語の集合が得られます：</p>
+<blockquote>
+<p><em>C</em> = {(rain, sky, water)}</p>
+</blockquote>
+<p>実際の言語では <em>I</em> が何千、何万といった規模になるため<sup class="footnote-reference"><a href="#vo_2">3</a></sup>、これを手作業で行うのは現実的ではありません。しかし、<em>I</em> から<em>B</em> と <em>C</em> を生み出す処理を、<em>I</em>の要素を<em>B</em>にコピーするか<em>I</em>の要素を表す複合語を作り出すかを順次に選択する長い決定の連続とみなすことができます。決定空間は広大になりますが、自動探索することは可能です。自動探索のためには、結果を評価する基準が必要になります。</p>
+<p>たとえば、以下のような関数 <em>S(I, B, C)</em> を評価基準とすることが考えられます：</p>
+<ol>
+<li><em>C</em> に含まれる各複合語の質を最大化する</li>
+<li>多数の複合語に使用される基礎語の数を最小化する</li>
+<li>#2を損なわない範囲で可能な限り多くの複合語を作る<sup class="footnote-reference"><a href="#vo_3">4</a></sup></li>
+</ol>
+<h2 id="si-noshi-mi-montekaruromu-tan-suo">私の試み（モンテカルロ木探索）</h2>
+<p><a href="https://ja.wikipedia.org/wiki/%E3%83%A2%E3%83%B3%E3%83%86%E3%82%AB%E3%83%AB%E3%83%AD%E6%9C%A8%E6%8E%A2%E7%B4%A2">モンテカルロ木探索</a>（MCTS）のアルゴリズムはゲームAIのものと認識されることが多いと思いますが、評価基準さえあれば決定の連続としてモデル化できるあらゆる問題に適用できます。私は最適化手法の専門家ではないですが、この手法は本プロジェクトに適切であるように思えます。<a href="https://mcts.ai/about/index.html">こちらのページ</a>にMCTSの概要が掲載されていますので、ここでは基本的な考え方だけ説明します。ただし図があると非常にわかりやすくなってくるので、それだけは借りたいと思います。</p>
+<p><img src="https://joshuatanner.dev/ja/blog/posts/blog-vocabulary-optimization/mcts.png" alt="MCTSの図解" /></p>
+<p>MCTSは、以下の4つのステップを繰り返して行われます：</p>
+<ol>
+<li><strong>選択:</strong> ルートから始めて、スコアを考慮しながら有望な葉ノードを探します。</li>
+<li><strong>展開:</strong> その葉ノードに1つの子ノードを生成して追加します。</li>
+<li><strong>シミュレーション:</strong> 完成または深さの最大値に至るまでノードの生成を繰り返し、上記の子ノードの仮サブツリーを構築してスコアします。</li>
+<li><strong>逆伝播:</strong> スコアを根ノードまで伝播します。</li>
+</ol>
+<p>理論上、良い評価関数があり、かつハイパーパラメータをうまく調整して探索と活用のバランスを取れれば、MCTSは高得点の状態（結果）に至るパスを見つけてくれます。本プロジェクトでその高得点の状態というのは、パスにある各ノードで行われた選択に構造された複合語の語彙です。</p>
+<p>実装の複雑さを抑えるため、今回は複合語の選択と作成の最適化だけを目指し、生成される複合語の目標数を <em>I</em>のサイズの一定割合に固定しました。つまり、前節の基準で挙げた#1（複合語の質）と#2（基本語の使用過多を最小化）のみを最適化対象としました。なのでMCTSツリーの各ノードは、未使用のアイデアを1つ選択し、2つの基本語を選択して組み合わせ、それによって得られる複合語を<em>C</em>に追加する操作を表すことになりました。</p>
+<h3 id="fu-he-yu-nosheng-cheng-toping-jia">複合語の生成と評価</h3>
+<p>生成される複合語がそのアイデアと意味的に関連する単語で構成されるように、<a href="https://conceptnet.io/">ConceptNet</a> 用いて候補単語を集める手法を取りました。ConceptNet は、英単語のノードを意味的な関係を表すエッジで結ぶ知識グラフです。アイデアの英単語に接続されたエッジをたどって基本語を探すことで、複合語が表すアイデアとそれを構成する単語の間に何らかの意味的な関係があることを保証できます。理論上はこれで<code>firefighter</code> のようなわかりやすい言葉を目指し、<code>honeymoon</code> のような直感的ではない複合語を避けられます。</p>
+<p>具体的には、アイデアがランダムに <em>I</em> から選ばれ、ConceptNetで収集された候補の中から <em>I</em> にも含まれる単語がランダムに複合語を構成する基本語として選ばれて複合語が生成されます。このときに選ばれた単語は <em>B</em> に追加されます。展開とシミュレーションの際にスコアを活用して子ノードを選ぶ方法も試しましたが、処理速度が大幅に低下しました。また、理論上スコの計算をシミュレーション後にのみ行っても、逆伝播が各ノードのスコアを調整してくれるので、そうさせてもらいました。</p>
+<p>複合語の評価関数の開発だけでも中々の難題なので、今回は最もシンプルな方法を取り、アイデアを表す単語と構成する基本語の単語ベクトル間のコサイン類似度を評価関数として利用しました。スコアは次の式で計算されます：<br />
+<code>score(compound) = (similarity(b1, i) + similarity(b2, i) + relationScore) / 3</code><br />
+ここで、relationScore は ConceptNet における関係の種類ごとに手動で設定された値です（例：x <code>is a</code> y は x <code>desires</code> y より高スコア）。</p>
+<h3 id="mctsnoping-jia-guan-shu-sukoaringu">MCTSの評価関数（スコアリング）</h3>
+<p>MCTSで使用する評価関数は、特定のノードや複合語ではなくツリーを下る経路によって得られる状態を評価するものになります。この場合、状態とは生成された複合語集合 <em>C</em> と、各基本語の使用回数の2つを指します。上述の基準#1（複合語の質）と#2（基本語の使用過多を最小化）を最適化するため、各複合語のスコアの合計を基本語の使用回数の二乗和で割った値をスコアとしました。</p>
+<h2 id="jie-guo">結果</h2>
+<p>これまでの説明から明らかだと思いますが、動作するプロトタイプにたどり着くためにいくつか手を抜きました。スコアリング関数がかなり適当だったことに加え、ノートPCの計算能力では MCTS の反復を十分に回せなかった結果、問題に対する良い解決策と呼べるものにはなりませんでした。とはいえ、いくつか共有する価値のある出力が得られたと思います。<a href="https://github.com/Mindful/wordgen">こちら</a>にコードを公開しているので、興味のある方はより良い方法に挑戦してみてください。</p>
+<h3 id="chu-li-li">出力例</h3>
+<p>以下は実際に生成された結果の一部です（厳密に言えば組み合わせは順序なしです）：</p>
+<ul>
+<li>segment + year = month</li>
+<li>crime + theft = robbery</li>
+<li>beach + edge = shore</li>
+<li>act + wedding = marriage</li>
+<li>cry + vegetable = onion</li>
+<li>computer + storage = disk</li>
+<li>air + crime = pollution</li>
+<li>bottom + dress = skirt</li>
+</ul>
+<p>上記の例の中に、結婚を意味する<code>act + wedding</code>のようにやや抽象的な組み合わせもありますが、我ながら<code>cry + vegetable</code>が玉ねぎの意味になっているのはかなり良かったです。しかしここで重要なのは、どの例の複合語も表しているアイデアに合った組み合わせになっています。玉ねぎは人を泣かせる野菜だし、<code>segment + year</code>になった月を意味する複合語も1年の一部です。とはいえ、出力の大半はそれほどうまく行っていません。失敗例もいくつか記載します。</p>
+<ul>
+<li>class + senior = freshman</li>
+<li>kitchen + meal = cook</li>
+<li>chicken + male = hen</li>
+</ul>
+<p>多くの出力と同じくこれらの3語は、アイデアの単語と似ている文脈に出てくるがそのアイデアを表すには良くない単語に構成されています。これはまさに単語ベクトル（分散意味論）に基づいた評価関数を用いたせいです。全出力は<a href="https://github.com/Mindful/wordgen/blob/main/results/generations_simple.txt">こちら</a>にあります。</p>
+<h2 id="zui-hou-ni">最後に</h2>
+<p>MCTSを用いて複合語を生成するしっかりした実装や優れた評価関数の開発は、それ自体で研究論文になり得ます。ちゃんとしたものにするにはせめて以下が必要でしょう：</p>
+<ul>
+<li>優れた複合語の評価関数</li>
+<li>複合語として表現されるアイデアの数も探索可能なMCTSの実装</li>
+<li>大量の計算資源</li>
+</ul>
+<p>さらに、次のような要素もあった方がよいかもしれません：</p>
+<ul>
+<li>MCTSでの子ノード生成を賢くする評価関数（完全にランダムより良い方法）</li>
+<li>ConceptNet以外の、アイデアと意味的関係のある単語を探せるデータ源</li>
+</ul>
+<p>本プロジェクトを論文レベルまで引き上げるつもりはありませんが、人工言語の構築に役立つ可能性のある面白いプロジェクトだと思います。もしこの取り組みをさらに発展させたい方がいれば、遠慮なくご連絡ください。</p>
+<hr/>
+<div class="footnote-definition" id="vo_4"><sup class="footnote-definition-label">1</sup>
+<p><a href="https://ja.wikipedia.org/wiki/%E7%94%9F%E7%94%A3%E6%80%A7_(%E8%A8%80%E8%AA%9E%E5%AD%A6)">生産性</a>は言語学の用語です。</p>
+</div>
+<div class="footnote-definition" id="vo_1"><sup class="footnote-definition-label">2</sup>
+<p>もちろん、2語以上の複合語も存在しますが、2語の複合語が一般的です。また、2語の複合語に限定することで、問題の枠組みを管理しやすくなります。</p>
+</div>
+<div class="footnote-definition" id="vo_2"><sup class="footnote-definition-label">3</sup>
+<p>例外は100語余りしかないトキポナ（Toki Pona）です。</p>
+</div>
+<div class="footnote-definition" id="vo_3"><sup class="footnote-definition-label">4</sup>
+<p>複合語に使われる基本語の数を最小化することと、複合語の数を最大化することには必然的なトレードオフがあります。というのも、<em>I</em>（基本的なアイデアの集合）が有限であるため、<em>I</em>から複合語として表現するアイデアを増やすほど、複合語を作るために選べる基本語の数が減るからです。</p>
+</div>
+
+    </div>
+  </div>
+
+        </article>
+    
+        <article>
+            
+  <div class="flex p-8 sm:p-14 bg-white shadowed w-full flex-col mb-6">
+    <header class="text-3xl md:text-4xl my-4">
+	    
+	      <a href="https://joshuatanner.dev/ja/blog/posts/blog-mwe-lookup/">【複単語表現の検索】トライ木による多重集合の部分集合検索</a>
+		
+    </header>
+    <span class="mb-2">2024-03-23</span>
+    <div class="blogpost">
+      <p>最近、文中の<a href="https://en.wikipedia.org/wiki/Multiword_expression">複単語表現 </a>（MWE）の見つけ方について考えるのにかなりの時間をかけています。MWEの定義は曖昧で、定義次第で何がMWEに該当するかが変わりますが、今日はその点は置いておき、MWEの自動検出について説明します。</p>
+<p>MWE検出の方法はさまざまですが、個人的には辞書ベースのものが好きです。簡単に言うと、MWEがたくさんあるリストが与えられ、そのうちのどれが文中に実際にあるかを割り出す手法です。これは以下のようなパイプラインとして表現できます：</p>
+<ol>
+<li>文中に存在し得るMWE（「可能なMWE」）を辞書から検索します。これは、辞書データから構成素がすべて文中にあるMWEを抽出する処理として考えることができます。辞書がうまく構造化されていないとかなり遅くなるので、本記事の大半はこの処理を効率化する方法の説明になります。</li>
+<li>検索された可能なMWEを構成し得る構成素の組み合わせを全て文中から「候補」として集めます。単純に可能なMWEに相当する単語の各組み合わせを見つける処理になりますが、記事の最後に説明します。</li>
+<li>各「候補」が実際にMWEであるかどうかを判断します。つまり、その構成素が慣用的/非構成的な意味を持つかどうかです。こうするには文脈における意味を判断できるシステムが必要であり、たいていの場合は機械学習に基づいた手法になります。昨年その方法の1つについて<a href="https://aclanthology.org/2023.findings-emnlp.14/">論文</a>を出版しましたが、この記事で詳しく解説するには手法が多くて複雑すぎます。</li>
+</ol>
+<p><img src="https://joshuatanner.dev/ja/blog/posts/blog-mwe-lookup/poster_sentence.png" alt="例文" /></p>
+<p>上記の文に対して、この3つのステップは以下のようになります：</p>
+<ol>
+<li><code>run_down</code>, <code>run_over</code>, <code>fall_down</code>, <code>fall_over</code>を検索して可能なMWEとして取得します。これらの4件は、辞書から構成素がすべて文中に含まれているMWEのすべてです。</li>
+<li>これらのMWEを文中の単語の組み合わせに対応付け、上図で描写されているように候補を見つけます。</li>
+<li>候補をフィルタにかけ、実際にMWEの意味になっている候補に絞り込みます。<code>fall_down</code>と<code>run_over</code>は明らかに間違っており、<code>run_down</code>というMWEは「（車両で）人をひく」のような意味なので、<code>fall_over</code>だけが残ります。</li>
+</ol>
+<p>1つのMWEに対して候補の単語組み合わせが複数ある場合もあります。たとえば、最後の<code>down</code>を<code>over</code>に置き換えて「I ran down the stairs and fell down」にすると、<code>run_down</code>の構成し得る組み合わせが2つあります。1つ目は<code>ran</code>と最初の<code>down</code>であり、2つ目は<code>ran</code>と二番目の<code>down</code>です。この問題に対応しやすくするためにも、ステップ＃1と＃2を分割して行うのがおすすめです。</p>
+<h2 id="ke-neng-namwenojian-suo">可能なMWEの検索</h2>
+<p>さて、主題のステップ＃1である可能なMWEの検索について説明しましょう。MWEの中に、その出現に制約があるものもありますが、動詞のMWEも考慮に入れると汎用的な制約がほとんどありません。まず<code>She put her beloved dog down</code>の<code>put_down</code>のように、構成素が連続している必要はありません。さらに<code>the beans have been spilled</code>の<code>spill_the_beans</code>のように、順序さえ保証されていません。最後に、MWEの構成素が重複しないとも限りません。その例として<code>face_to_face</code>などがあります。</p>
+<p>構成素が順序に従う必要がなく、重複しない保証もないことを考えると、可能なMWEの検索という問題は次のように形式化できます。入力文の単語の多重集合<em>S</em>と、可能なMWEごとの多重集合を含む集合<em>L</em>が与えられた場合、<em>S</em>の部分集合でありかつ<em>L</em>に含まれる要素を見つけることです。</p>
+<p><img src="https://joshuatanner.dev/ja/blog/posts/blog-mwe-lookup/equation.svg" alt="MWE取得方程式" /></p>
+<p>その結果、<em>M</em>をMWEごとの多重集合の平均要素数とし、最悪計算量は*O(M * |L|)*というかなりひどい上限になります。辞書内の各MWEが文中の単語の部分集合であるか否かを調べる単純な手法だと、各文ごとに全てのMWE多重集合を処理することになってしまうので、非常に遅くなります。</p>
+<pre data-lang="python" style="background-color:#2b303b;color:#c0c5ce;" class="language-python "><code class="language-python" data-lang="python"><span style="color:#b48ead;">class </span><span style="color:#ebcb8b;">NaiveApproach</span><span style="color:#eff1f5;">:
+</span><span>    </span><span style="color:#b48ead;">def </span><span style="color:#96b5b4;">__init__</span><span>(</span><span style="color:#bf616a;">self</span><span>):
+</span><span>        </span><span style="color:#bf616a;">self</span><span>.data = [
+</span><span>            (mwe[&#39;</span><span style="color:#a3be8c;">lemma</span><span>&#39;], </span><span style="color:#bf616a;">Counter</span><span>(mwe[&#39;</span><span style="color:#a3be8c;">constituents</span><span>&#39;]))
+</span><span>            </span><span style="color:#b48ead;">for </span><span>mwe </span><span style="color:#b48ead;">in </span><span style="color:#bf616a;">get_mwes</span><span>()
+</span><span>        ]
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">def </span><span style="color:#8fa1b3;">search</span><span>(</span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">words</span><span>: list[str]) -&gt; list[str]:
+</span><span>        word_counter = </span><span style="color:#bf616a;">Counter</span><span>(words)
+</span><span>        </span><span style="color:#b48ead;">return </span><span>[
+</span><span>            mwe </span><span style="color:#b48ead;">for </span><span>mwe, constituents </span><span style="color:#b48ead;">in </span><span style="color:#bf616a;">self</span><span>.data
+</span><span>            </span><span style="color:#b48ead;">if </span><span style="color:#96b5b4;">all</span><span>(
+</span><span>                word_counter[constituent] &gt;= count
+</span><span>                </span><span style="color:#b48ead;">for </span><span>constituent, count </span><span style="color:#b48ead;">in </span><span>constituents.</span><span style="color:#bf616a;">items</span><span>()
+</span><span>            )
+</span><span>        ]
+</span></code></pre>
+<p>このコードは私のノートパソコンで1,000文を処理するのに平均して28秒かかります。しかし、<a href="https://ja.wikipedia.org/wiki/%E3%83%88%E3%83%A9%E3%82%A4_(%E3%83%87%E3%83%BC%E3%82%BF%E6%A7%8B%E9%80%A0)">トライ木</a>を使用することで大幅に高速化できます<sup class="footnote-reference"><a href="#mwel_1">1</a></sup>。トライ木は通常、文字から構築されるものですが、この場合は文字ではなくて単語を扱っているため、単語から構築します。</p>
+<p><img src="https://joshuatanner.dev/ja/blog/posts/blog-mwe-lookup/mwe_trie.png" alt="MWEのトライ木" /></p>
+<p>MWEのトライ木を辞書として使用すると、深さ優先探索で可能なMWEを集めることができます。この探索は、文中にない単語のノードに突き当たったところで中断します。つまり、文中の単語の部分集合であるトライ木の部分のみをたどることができます。</p>
+<pre data-lang="python" style="background-color:#2b303b;color:#c0c5ce;" class="language-python "><code class="language-python" data-lang="python"><span style="color:#b48ead;">class </span><span style="color:#ebcb8b;">TrieNode</span><span style="color:#eff1f5;">:
+</span><span>    __slots__ = [&#39;</span><span style="color:#a3be8c;">lemma</span><span>&#39;, &#39;</span><span style="color:#a3be8c;">children</span><span>&#39;]
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">def </span><span style="color:#96b5b4;">__init__</span><span>(</span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">lemma</span><span>: Optional[str]):
+</span><span>    	</span><span style="color:#65737e;"># lemma represents a possible MWE that terminates at this node
+</span><span>        </span><span style="color:#bf616a;">self</span><span>.lemma = lemma  
+</span><span>        </span><span style="color:#bf616a;">self</span><span>.children = {}
+</span><span>
+</span><span>
+</span><span style="color:#b48ead;">class </span><span style="color:#ebcb8b;">Trie</span><span style="color:#eff1f5;">:
+</span><span>    </span><span style="color:#b48ead;">def </span><span style="color:#96b5b4;">__init__</span><span>(</span><span style="color:#bf616a;">self</span><span>):
+</span><span>        </span><span style="color:#bf616a;">self</span><span>.tree = </span><span style="color:#bf616a;">self</span><span>.</span><span style="color:#bf616a;">_build_tree</span><span>(</span><span style="color:#bf616a;">get_mwes</span><span>())
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">def </span><span style="color:#8fa1b3;">_build_tree</span><span>(</span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">mwes</span><span>: list[dict[str, str]]):
+</span><span>        root = </span><span style="color:#bf616a;">TrieNode</span><span>(</span><span style="color:#d08770;">None</span><span>)
+</span><span>        </span><span style="color:#b48ead;">for </span><span>mwe </span><span style="color:#b48ead;">in </span><span>mwes:
+</span><span>            curlevel = root
+</span><span>            </span><span style="color:#b48ead;">for </span><span>word </span><span style="color:#b48ead;">in </span><span>mwe[&#39;</span><span style="color:#a3be8c;">constituents</span><span>&#39;]:
+</span><span>                </span><span style="color:#b48ead;">if </span><span>word not in curlevel.children:
+</span><span>                    curlevel.children[word] = </span><span style="color:#bf616a;">TrieNode</span><span>(</span><span style="color:#d08770;">None</span><span>)
+</span><span>                curlevel = curlevel.children[word]
+</span><span>
+</span><span>            curlevel.lemma = mwe[&#39;</span><span style="color:#a3be8c;">lemma</span><span>&#39;]
+</span><span>
+</span><span>        </span><span style="color:#b48ead;">return </span><span>root
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">def </span><span style="color:#8fa1b3;">search</span><span>(</span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">sentence</span><span>: list[str]) -&gt; list[str]:
+</span><span>        counter = </span><span style="color:#bf616a;">Counter</span><span>(sentence)
+</span><span>        results = []
+</span><span>        </span><span style="color:#bf616a;">self</span><span>.</span><span style="color:#bf616a;">_search</span><span>(</span><span style="color:#bf616a;">self</span><span>.tree, counter, results)
+</span><span>        </span><span style="color:#b48ead;">return </span><span>results
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">def </span><span style="color:#8fa1b3;">_search</span><span>(</span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">cur_node</span><span>: TrieNode, </span><span style="color:#bf616a;">counter</span><span>: Counter, </span><span style="color:#bf616a;">results</span><span>: list):
+</span><span>        possible_next_constituents = [c </span><span style="color:#b48ead;">for </span><span>c </span><span style="color:#b48ead;">in </span><span>counter </span><span style="color:#b48ead;">if </span><span>counter[c] &gt; </span><span style="color:#d08770;">0 </span><span>and c in cur_node.children]
+</span><span>
+</span><span>        </span><span style="color:#b48ead;">for </span><span>constituent </span><span style="color:#b48ead;">in </span><span>possible_next_constituents:
+</span><span>            next_node = cur_node.children[constituent]
+</span><span>            counter[constituent] -= </span><span style="color:#d08770;">1
+</span><span>            </span><span style="color:#b48ead;">if </span><span>next_node.lemma is not </span><span style="color:#d08770;">None</span><span>:
+</span><span>                results.</span><span style="color:#bf616a;">append</span><span>(next_node.lemma)
+</span><span>            </span><span style="color:#bf616a;">self</span><span>.</span><span style="color:#bf616a;">_search</span><span>(next_node, counter, results)
+</span><span>            counter[constituent] += </span><span style="color:#d08770;">1
+</span></code></pre>
+<p>これで辞書内のMWE間で共有される接頭辞を一つだけ保存できるようになりますが、主な利点は上記のように検索を行うことで、最初の単語が文中に含まれないMWEに対して計算資源を一切費やさないことです。こうするとかなり早くなり、1,000文を平均で0.8秒で処理できます。しかしもう少し早くすることはまだ可能です。</p>
+<p>英語の単語出現頻度は<a href="https://ja.wikipedia.org/wiki/%E3%82%B8%E3%83%83%E3%83%97%E3%81%AE%E6%B3%95%E5%89%87">大きく偏っており</a>、出現頻度の高い単語から始まるMWEも多いです。この実験で使用した比較的に小さい辞書でも、<code>in</code>から始まるMWEが169件もあります。たとえば<code>in_theory</code>, <code>in_unison</code>, <code>in_vain</code>, などがあります。構成素が全て文中にあるMWEしか求めていないため、出現の可能性が最も低い単語の有無を最初に調べた方が効率が良いはずです。つまり、一番出現頻度の低い単語から処理するということです。トライ木に入れる前に、<a href="https://raw.githubusercontent.com/arstgit/high-frequency-vocabulary/master/30k.txt">出現頻度のデータ</a>を用いてMWEの構成素を出現頻度の低い順に並び替えることでこういった検索を実現できます。注意点としては、単語を共有して順序だけで区別されるMWEを扱う場合（例えば<code>roast_pork</code>や<code>pork_roast</code>）には、トライ木の1つのノードに複数のMWEを結びつける必要がありますが、わずかな変更で済みます。</p>
+<pre data-lang="python" style="background-color:#2b303b;color:#c0c5ce;" class="language-python "><code class="language-python" data-lang="python"><span style="color:#b48ead;">class </span><span style="color:#ebcb8b;">OrderedTrie</span><span style="color:#eff1f5;">:
+</span><span>    </span><span style="color:#65737e;"># not pictured here: 
+</span><span>    </span><span style="color:#65737e;"># 1) TrieNode now holds a list of lemmas instead of a single lemma
+</span><span>    </span><span style="color:#65737e;"># 2) _search needs one line changed to return all lemmas on a node 
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">def </span><span style="color:#96b5b4;">__init__</span><span>(</span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">word_data</span><span>: dict[str, int]):
+</span><span>        </span><span style="color:#65737e;"># any missing words are treated as last in the frequency list
+</span><span>        </span><span style="color:#bf616a;">self</span><span>.word_freqs = </span><span style="color:#bf616a;">defaultdict</span><span>(</span><span style="color:#b48ead;">lambda</span><span>: </span><span style="color:#96b5b4;">len</span><span>(word_data), word_data)
+</span><span>        </span><span style="color:#bf616a;">self</span><span>.tree = </span><span style="color:#bf616a;">self</span><span>.</span><span style="color:#bf616a;">_build_tree</span><span>(</span><span style="color:#bf616a;">get_mwes</span><span>())
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">def </span><span style="color:#8fa1b3;">_reorder</span><span>(</span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">words</span><span>: list[str]) -&gt; list[str]:
+</span><span>        </span><span style="color:#65737e;"># sort by word frequency, then alphabetically in case
+</span><span>        </span><span style="color:#65737e;"># both words are missing from word_freqs
+</span><span>        </span><span style="color:#b48ead;">return </span><span style="color:#96b5b4;">sorted</span><span>(words, </span><span style="color:#bf616a;">key</span><span>=</span><span style="color:#b48ead;">lambda </span><span style="color:#bf616a;">w</span><span>: (</span><span style="color:#bf616a;">self</span><span>.word_freqs[w], w), </span><span style="color:#bf616a;">reverse</span><span>=</span><span style="color:#d08770;">True</span><span>)
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">def </span><span style="color:#8fa1b3;">_build_tree</span><span>(</span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">mwes</span><span>: list[dict[str, str]]):
+</span><span>        root = </span><span style="color:#bf616a;">OrderedTrieNode</span><span>([])
+</span><span>        </span><span style="color:#b48ead;">for </span><span>mwe </span><span style="color:#b48ead;">in </span><span>mwes:
+</span><span>            curlevel = root
+</span><span>            </span><span style="color:#b48ead;">for </span><span>word </span><span style="color:#b48ead;">in </span><span style="color:#bf616a;">self</span><span>.</span><span style="color:#bf616a;">_reorder</span><span>(mwe[&#39;</span><span style="color:#a3be8c;">constituents</span><span>&#39;]):
+</span><span>                </span><span style="color:#b48ead;">if </span><span>word not in curlevel.children:
+</span><span>                    curlevel.children[word] = </span><span style="color:#bf616a;">OrderedTrieNode</span><span>(word)
+</span><span>                curlevel = curlevel.children[word]
+</span><span>
+</span><span>            curlevel.lemmas.</span><span style="color:#bf616a;">append</span><span>(mwe[&#39;</span><span style="color:#a3be8c;">lemma</span><span>&#39;])
+</span><span>
+</span><span>        </span><span style="color:#b48ead;">return </span><span>root
+</span></code></pre>
+<p>この並び替えた構成素のトライ木の手法を使うと、平均でたった0.5秒で1,000文を処理することができ、前述のトライ木より４割程度早くなります。各種法の平均処理時間は以下のグラフに表示されています（対数スケール）。</p>
+<p><img src="https://joshuatanner.dev/ja/blog/posts/blog-mwe-lookup/average_time_by_method.png" alt="手法ごとの平均処理時間" /></p>
+<p>単純な検索手法からトライ木に基づいた手法に切り替えることは割と明白な改善と言えますが、ここで興味深いのはトライ木の構造を単語の頻出度で最適化することによる高速化だと思います。なにより、処理しようとしているデータやドメインを理解する重要性の示す良い例でしょう。このさらなる高速化は英文の単語である入力データの分布を考えて初めて可能になるものです。</p>
+<h2 id="jian-suo-saretake-neng-namwetohou-bu-nodan-yu-zu-mihe-wasenodui-ying-fu-ke">検索された可能なMWEと候補の単語組み合わせの対応付け</h2>
+<p>これで可能なMWEを検索する方法はわかったので、特定のMWEを構成し得る単語の組み合わせを文中から全て見つけるステップ#2を簡単に見てみましょう。文<code>I ran down the stairs and fell down</code>とMWE<code>run_down</code>の場合、まず文をトークン列として、MWEを多重集合として表現できます。</p>
+<pre data-lang="python" style="background-color:#2b303b;color:#c0c5ce;" class="language-python "><code class="language-python" data-lang="python"><span style="color:#b48ead;">from </span><span>collections </span><span style="color:#b48ead;">import </span><span>namedtuple, defaultdict
+</span><span style="color:#b48ead;">from </span><span>itertools </span><span style="color:#b48ead;">import </span><span>combinations, product
+</span><span>
+</span><span>token = </span><span style="color:#bf616a;">namedtuple</span><span>(&quot;</span><span style="color:#a3be8c;">Token</span><span>&quot;, [&quot;</span><span style="color:#a3be8c;">form</span><span>&quot;, &quot;</span><span style="color:#a3be8c;">idx</span><span>&quot;, &quot;</span><span style="color:#a3be8c;">lemma</span><span>&quot;])
+</span><span>sentence = [
+</span><span>    </span><span style="color:#bf616a;">token</span><span>(&quot;</span><span style="color:#a3be8c;">I</span><span>&quot;, </span><span style="color:#d08770;">0</span><span>, &quot;</span><span style="color:#a3be8c;">I</span><span>&quot;),
+</span><span>    </span><span style="color:#bf616a;">token</span><span>(&quot;</span><span style="color:#a3be8c;">ran</span><span>&quot;, </span><span style="color:#d08770;">1</span><span>, &quot;</span><span style="color:#a3be8c;">run</span><span>&quot;),
+</span><span>    </span><span style="color:#bf616a;">token</span><span>(&quot;</span><span style="color:#a3be8c;">down</span><span>&quot;, </span><span style="color:#d08770;">2</span><span>, &quot;</span><span style="color:#a3be8c;">down</span><span>&quot;),
+</span><span>    </span><span style="color:#bf616a;">token</span><span>(&quot;</span><span style="color:#a3be8c;">the</span><span>&quot;, </span><span style="color:#d08770;">3</span><span>, &quot;</span><span style="color:#a3be8c;">the</span><span>&quot;),
+</span><span>    </span><span style="color:#bf616a;">token</span><span>(&quot;</span><span style="color:#a3be8c;">stairs</span><span>&quot;, </span><span style="color:#d08770;">4</span><span>, &quot;</span><span style="color:#a3be8c;">stairs</span><span>&quot;),
+</span><span>    </span><span style="color:#bf616a;">token</span><span>(&quot;</span><span style="color:#a3be8c;">and</span><span>&quot;, </span><span style="color:#d08770;">5</span><span>, &quot;</span><span style="color:#a3be8c;">and</span><span>&quot;),
+</span><span>    </span><span style="color:#bf616a;">token</span><span>(&quot;</span><span style="color:#a3be8c;">fell</span><span>&quot;, </span><span style="color:#d08770;">6</span><span>, &quot;</span><span style="color:#a3be8c;">fall</span><span>&quot;),
+</span><span>    </span><span style="color:#bf616a;">token</span><span>(&quot;</span><span style="color:#a3be8c;">down</span><span>&quot;, </span><span style="color:#d08770;">7</span><span>, &quot;</span><span style="color:#a3be8c;">down</span><span>&quot;),
+</span><span>    </span><span style="color:#bf616a;">token</span><span>(&quot;</span><span style="color:#a3be8c;">.</span><span>&quot;, </span><span style="color:#d08770;">8</span><span>, &quot;</span><span style="color:#a3be8c;">.</span><span>&quot;),
+</span><span>]
+</span><span>
+</span><span style="color:#65737e;"># build a map of lemmas to tokens
+</span><span style="color:#65737e;"># so we can look up tokens by their lemma
+</span><span>lemma_to_tokens = </span><span style="color:#bf616a;">defaultdict</span><span>(list)
+</span><span style="color:#b48ead;">for </span><span>t </span><span style="color:#b48ead;">in </span><span>sentence:
+</span><span>    lemma_to_tokens[t.lemma].</span><span style="color:#bf616a;">append</span><span>(t)
+</span><span>
+</span><span style="color:#65737e;"># mwe: &quot;run_down&quot;
+</span><span>lemma_counter = {
+</span><span>    &quot;</span><span style="color:#a3be8c;">run</span><span>&quot;: </span><span style="color:#d08770;">1</span><span>,
+</span><span>    &quot;</span><span style="color:#a3be8c;">down</span><span>&quot;: </span><span style="color:#d08770;">1</span><span>,
+</span><span>}
+</span></code></pre>
+<p>以下のコードは一見では分かりづらいかもしれませんが、やっていることはそれほど複雑ではありません。MWEに含まれる各見出し語に選べるトークンをタプルとして表現し、可能な選択肢を全て集めます。ちなみにこれは各見出し語に対してN語からK語を選ぶ組み合わせを求めることに相当します。ここで、Nはその見出し語が文中に出現する回数であり、Kはその見出し語がMWEに出現する回数になります。得られたタプルには、通常の場合は1つの要素しか含まれませんが、<code>face_to_face</code>のように同じ構成素が繰り返されるMWEでは複数の要素が含まれることがあります。</p>
+<pre data-lang="python" style="background-color:#2b303b;color:#c0c5ce;" class="language-python "><code class="language-python" data-lang="python"><span>candidate_word_combos = [
+</span><span>    </span><span style="color:#bf616a;">list</span><span>(</span><span style="color:#bf616a;">combinations</span><span>(lemma_to_tokens[lemma], lemma_counter[lemma]))
+</span><span>    </span><span style="color:#b48ead;">for </span><span>lemma </span><span style="color:#b48ead;">in </span><span>lemma_counter
+</span><span>]
+</span></code></pre>
+<p>上記のコードを走らせると、以下の結果が得られます。</p>
+<pre data-lang="python" style="background-color:#2b303b;color:#c0c5ce;" class="language-python "><code class="language-python" data-lang="python"><span>[
+</span><span>    [
+</span><span>        (</span><span style="color:#bf616a;">Token</span><span>(</span><span style="color:#bf616a;">form</span><span>=&#39;</span><span style="color:#a3be8c;">ran</span><span>&#39;, </span><span style="color:#bf616a;">idx</span><span>=</span><span style="color:#d08770;">1</span><span>, </span><span style="color:#bf616a;">lemma</span><span>=&#39;</span><span style="color:#a3be8c;">run</span><span>&#39;),)
+</span><span>    ], 
+</span><span>    [
+</span><span>        (</span><span style="color:#bf616a;">Token</span><span>(</span><span style="color:#bf616a;">form</span><span>=&#39;</span><span style="color:#a3be8c;">down</span><span>&#39;, </span><span style="color:#bf616a;">idx</span><span>=</span><span style="color:#d08770;">2</span><span>, </span><span style="color:#bf616a;">lemma</span><span>=&#39;</span><span style="color:#a3be8c;">down</span><span>&#39;),), 
+</span><span>        (</span><span style="color:#bf616a;">Token</span><span>(</span><span style="color:#bf616a;">form</span><span>=&#39;</span><span style="color:#a3be8c;">down</span><span>&#39;, </span><span style="color:#bf616a;">idx</span><span>=</span><span style="color:#d08770;">7</span><span>, </span><span style="color:#bf616a;">lemma</span><span>=&#39;</span><span style="color:#a3be8c;">down</span><span>&#39;),)
+</span><span>    ]
+</span><span>]
+</span></code></pre>
+<p>最後に、これらのタプルのリストごとに直積集合を取り、タプルを展開（アンパック）します。各タプルは見出し語にトークンを選ぶ方法を表現しているので、これは実質的に各見出し語に対して単語の選び方の組み合わせを全て検討することになります。それはつまり、元々の目的である、特定のMWEを構成し得る単語の組み合わせを得ることができます。仕上げに、結果に含まれるトークンの順番を直します。</p>
+<pre data-lang="python" style="background-color:#2b303b;color:#c0c5ce;" class="language-python "><code class="language-python" data-lang="python"><span>mwe_combinations = {
+</span><span>    </span><span style="color:#bf616a;">tuple</span><span>(x </span><span style="color:#b48ead;">for </span><span>y </span><span style="color:#b48ead;">in </span><span>p </span><span style="color:#b48ead;">for </span><span>x </span><span style="color:#b48ead;">in </span><span>y) 
+</span><span>    </span><span style="color:#b48ead;">for </span><span>p </span><span style="color:#b48ead;">in </span><span style="color:#bf616a;">product</span><span>(*candidate_word_combos)
+</span><span>}
+</span><span>
+</span><span>sorted_mwe_combinations = [
+</span><span>    </span><span style="color:#96b5b4;">sorted</span><span>(raw_combo, </span><span style="color:#bf616a;">key</span><span>=</span><span style="color:#b48ead;">lambda </span><span style="color:#bf616a;">t</span><span>: t.idx) 
+</span><span>    </span><span style="color:#b48ead;">for </span><span>raw_combo </span><span style="color:#b48ead;">in </span><span>mwe_combinations
+</span><span>]
+</span></code></pre>
+<p>そして最終結果が以下となります。</p>
+<pre data-lang="python" style="background-color:#2b303b;color:#c0c5ce;" class="language-python "><code class="language-python" data-lang="python"><span>[
+</span><span>    [
+</span><span>        </span><span style="color:#bf616a;">Token</span><span>(</span><span style="color:#bf616a;">form</span><span>=&#39;</span><span style="color:#a3be8c;">ran</span><span>&#39;, </span><span style="color:#bf616a;">idx</span><span>=</span><span style="color:#d08770;">1</span><span>, </span><span style="color:#bf616a;">lemma</span><span>=&#39;</span><span style="color:#a3be8c;">run</span><span>&#39;), 
+</span><span>        </span><span style="color:#bf616a;">Token</span><span>(</span><span style="color:#bf616a;">form</span><span>=&#39;</span><span style="color:#a3be8c;">down</span><span>&#39;, </span><span style="color:#bf616a;">idx</span><span>=</span><span style="color:#d08770;">2</span><span>, </span><span style="color:#bf616a;">lemma</span><span>=&#39;</span><span style="color:#a3be8c;">down</span><span>&#39;)
+</span><span>    ], 
+</span><span>    [
+</span><span>        </span><span style="color:#bf616a;">Token</span><span>(</span><span style="color:#bf616a;">form</span><span>=&#39;</span><span style="color:#a3be8c;">ran</span><span>&#39;, </span><span style="color:#bf616a;">idx</span><span>=</span><span style="color:#d08770;">1</span><span>, </span><span style="color:#bf616a;">lemma</span><span>=&#39;</span><span style="color:#a3be8c;">run</span><span>&#39;), 
+</span><span>        </span><span style="color:#bf616a;">Token</span><span>(</span><span style="color:#bf616a;">form</span><span>=&#39;</span><span style="color:#a3be8c;">down</span><span>&#39;, </span><span style="color:#bf616a;">idx</span><span>=</span><span style="color:#d08770;">7</span><span>, </span><span style="color:#bf616a;">lemma</span><span>=&#39;</span><span style="color:#a3be8c;">down</span><span>&#39;)
+</span><span>    ]
+</span><span>]
+</span><span>
+</span></code></pre>
+<p> </p>
+<hr/>
+<div class="footnote-definition" id="mwel_1"><sup class="footnote-definition-label">1</sup>
+<p>トライ木に基づいた手法の方が平均で圧倒的に早いですが、理論上の最悪計算量は単純な手法と変わりません。しかし、トライ木の手法ででこの上限に近づくためには、辞書内のほとんどまたは全てのMWEを含む一文が必要なので、現実的にはとても考えにくいです。</p>
+</div>
+
+    </div>
+  </div>
+
+        </article>
+    
+        <article>
+            
+  <div class="flex p-8 sm:p-14 bg-white shadowed w-full flex-col mb-6">
+    <header class="text-3xl md:text-4xl my-4">
+	    
+	      <a href="https://joshuatanner.dev/ja/blog/posts/blog-promenade/">生研ニュースの記事を執筆しました</a>
+		
+    </header>
+    <span class="mb-2">2021-05-09</span>
+    <div class="blogpost">
+      <p>私が現在所属している生産技術研究所は、2ヶ月に1回<a href="https://www.iis.u-tokyo.ac.jp/ja/about/publication/seiken_news/">生研ニュース</a>という広報誌のようなものを出版していますが、4月号の「PROMENADE」という海外から来ている研究員が書く枠の記事を執筆しました。日本語で執筆と言えるようなものは初めてなので、記念に保管しておきたいと思いました。主に来日とそれからの生活の話ですが、記事に載っている「生研ニュース#189」へのリンクは下に載せているのでもし興味があれば読んでみてください。</p>
+<p>ちなみに、記事の文頭に出てくることわざは日本語と<a href="https://ja.wikipedia.org/wiki/%E3%82%A4%E3%83%87%E3%82%A3%E3%83%83%E3%82%B7%E3%83%A5%E8%AA%9E">イディッシュ語</a>（東欧のユダヤ人の言語）で書いていますが、実は英語で「Man makes plans and god laughs」として親に教えてもらったもので、この記事の下調べで初めてそれがイディッシュ語のことわざだと知りました。ご先祖様が東欧ユダヤ人なのはもちろん知っていましたが、普段から使っている英語にイディッシュ語の直訳があることに驚き、少しだけ自分のルーツを感じました。</p>
+<h2 id="ji-shi-hakokodeyue-lan-dekimasu"><a href="https://issuu.com/utokyo-iis/docs/iisnews189/26">記事はここで閲覧できます</a></h2>
+
+    </div>
+  </div>
+
+        </article>
+    
+</div>
+
+
+
+
+			</div>
+
+
+
+			
+			<div class="flex flex-row md:flex-col md:shrink-[0.15] bg-transparent md:h-full md:mr-5 md:mt-10 bg-transparent md:py-0 -my-5 space-x-8 md:space-x-0">
+				<a href="https://github.com/Mindful">
+					<img src="/images/social-github.svg" alt="github" class="w-auto h-auto md:w-2/3 md:h-2/3 pt-2 pb-2"/>
+				</a>
+				<a href="https://www.linkedin.com/in/joshuatanner2">
+					<img src="/images/social-linkedin.svg" alt="linkedin" class="w-auto h-auto md:w-2/3 md:h-2/3 pt-2 pb-2"/>
+				</a>
+				<a href="https://scholar.google.com/citations?user=OqYthY0AAAAJ&h">
+					<img src="/images/social-scholar.svg" alt="google scholar" class="w-auto h-auto md:w-2/3 md:h-2/3 pt-2 pb-2"/>
+				</a>
+				<a href="https://stackexchange.com/users/5319885/mindful">
+					<img src="/images/social-se.svg" alt="stack exchange" class="w-auto h-auto md:w-2/3 md:h-2/3 pt-2 pb-2"/>
+				</a>
+				<a href="https://twitter.com/mindful_jt">
+					<img src="/images/social-twitter.svg" alt="twitter" class="w-auto h-auto md:w-2/3 md:h-2/3 pt-2 pb-2"/>
+				</a>
+				<a href="mailto:mindful.jt@gmail.com">
+					<img src="/images/social-email.svg" alt="email" class="w-auto h-auto md:w-2/3 md:h-2/3 pt-2 pb-2"/>
+				</a>
+			</div>
+			
+
+		</div>
+
+	</body>
+</main>
+</html>

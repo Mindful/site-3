@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+	
+		
+		
+	
+
+	
+		
+		
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<link rel="stylesheet" href="https://joshuatanner.dev/styles/styles.css" />
+	<link rel="icon" type="image/x-icon" href="/images/favicon.png">
+	<meta charset="UTF-8">
+
+	<title>【玉ねぎ＝泣く野菜】人工言語のための複合語生成</title>
+	<meta name="og:title" content="【玉ねぎ＝泣く野菜】人工言語のための複合語生成" />
+	<meta name="twitter:title" content="【玉ねぎ＝泣く野菜】人工言語のための複合語生成" />
+
+	<meta name="description" content="モンテカルロ木探索を用いて、人工言語で使える複合語の語彙を生成しようとする試み" />
+  <meta name="og:description" content="モンテカルロ木探索を用いて、人工言語で使える複合語の語彙を生成しようとする試み" />
+ 	<meta name="twitter:description" content="モンテカルロ木探索を用いて、人工言語で使える複合語の語彙を生成しようとする試み" />
+
+ 	<meta property="og:url" content="https://joshuatanner.dev/ja/blog/posts/blog-vocabulary-optimization/" />
+ 	<meta property="og:type" content="website" />
+ 	<meta property="og:site_name" content="Joshua Tanner" />
+
+ 	<meta property="og:image" content="/images/face.png" />
+	<meta property="og:image:alt" content="ジョシュア・ターナーの個人サイト" />
+
+<meta name="twitter:image" content="/images/face.png" />
+<meta name="twitter:image:alt" content="ジョシュア・ターナーの個人サイト" />
+</head>
+
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-DNWSN122JK"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-DNWSN122JK');
+</script>
+
+
+<main>
+	<nav class="flex bg-green p-0 h-16" style="box-shadow: 0px 3px 10px 0px #4d4d4d;">
+		<div class="flex items-center flex-shrink-0 text-white mr-6 ml-6">
+			<!-- Replace LangLink with a tag -->
+			<a href="https://joshuatanner.dev/ja/" class="text-white"><span>Joshua Tanner</span></a>
+		</div>
+		<div style="border-left: 1px solid white; height: 100%;" class="mr-6"></div>
+
+		<div class="flex w-full items-center text-white">
+
+			<div class="hidden sm:flex">
+				<a href='https://joshuatanner.dev/ja/translation/' class="text-white mr-4">TRANSLATION</a>
+				<a href='https://joshuatanner.dev/ja/blog/' class="text-white">BLOG</a>
+			</div>
+
+			<div class="relative content-center -ml-4 sm:hidden">
+				<input type="checkbox" id="sortbox" class="toggler"/>
+				<div class="hamburger"><div></div></div>
+
+				<div id="sortboxmenu" class="absolute mt-2 right-1 top-full min-w-max shadow rounded hidden bg-gray-300 border border-gray-400 transition delay-75 ease-in-out z-10">
+					<ul class="block text-right text-gray-900">
+						<li><a href='https://joshuatanner.dev/ja/translation/' class="block px-3 py-2 bg-green text-white">TRANSLATION</a></li>
+						<li><a href='https://joshuatanner.dev/ja/blog/' class="block px-3 py-2 bg-green text-white">BLOG</a></li>
+					</ul>
+				</div>
+			</div>
+
+			
+				
+					
+				
+				<!-- If the current page is in Japanese, show link to English -->
+				<a href="https://joshuatanner.dev/blog/posts/blog-vocabulary-optimization" class="absolute md:right-8 right-4">English</a>
+			
+
+		</div>
+	</nav>
+
+	<body>
+
+		<div class="flex md:flex-row flex-col px-5 md:pr-0 items-center md:items-start">
+			<div class="flex m-10 w-full flex-col">
+				
+
+  <div class="flex p-8 sm:p-14 bg-white shadowed w-full flex-col mb-6">
+    <header class="text-3xl md:text-4xl my-4">
+	    
+		    【玉ねぎ＝泣く野菜】人工言語のための複合語生成
+		
+    </header>
+    <span class="mb-2">2025-02-16</span>
+    <div class="blogpost">
+      <p>日本語を学んでいく中で特に印象的だったのは、覚えた漢字が一定数を超えると、それまで見たことのない単語でも読めたり意味を推測できたりすることです。これは漢字そのものが意味を持つから可能になることです。たとえば、建物は建つ物、自信は自分を信じること、などのように漢字から意味がわかる単語が少なからずあります。初めて耳にする言葉でも、その漢字を推測して意味に辿り着けることがあります。</p>
+<p>英語でも見たことのない単語の意味を推測できる場合はありますが、主に<code>-ness</code>（例：kindness）や<code>re-</code>（例：rewrite）といった生産的な<sup class="footnote-reference"><a href="#vo_4">1</a></sup>接辞か、認識しやすいラテン語由来の語根を持つ単語です。英語において、漢字から推測可能な単語に最も近いのは複合語だと思っています。すべてが推測可能というわけではありませんが、<code>mailbox</code>（郵便箱）、<code>firefighter</code>（消防士）、<code>waterfall</code>（滝）など、わかりやすいものもあります。この話がなぜ大事なのかというと、こういった推測しやすい複合語が多いほど新しい語彙を覚える負担が減るからです。たとえば、<a href="https://ja.wikipedia.org/wiki/%E3%82%A8%E3%82%B9%E3%83%9A%E3%83%A9%E3%83%B3%E3%83%88">エスペラント</a>（最も広く使われている人工言語）は、生産的な接辞と複合語を広範に活用しています（今回話すのは複合語のみですが）。</p>
+<p>さて、本題は複合語を自動生成する方法があるかどうかですね。複合語を構成する単語がその複合語の意味と関連している必要があります。同時に、語彙全体も考える必要があります。1つの単語が多くの複合語に使われすぎると、手がかりとしての役割が薄れます。そのため、複数の基準を考慮しながら、最適な複合語語彙を見つける方法が必要になります。</p>
+<h2 id="tan-suo-wen-ti-tositenozhuo-efang">探索問題としての捉え方</h2>
+<p>まず初めに、単語（複合語を含む）で表現したい意味の集合を考えます。これらを「アイデア」と呼び、英単語で表現します。このアイデアの集合 を<em>I</em>とし、 語彙を構築するプロセスは、<em>I</em> から基礎語の集合 <em>B</em> を選び（<em>B ⊂ I</em>）、<em>I</em> の残りの要素を <em>B</em> の2つの単語を組み合わせた複合語として表現することと考えられます<sup class="footnote-reference"><a href="#vo_1">2</a></sup>。これにより、複合語の集合 <em>C</em> が生まれます。<em>C</em> の各要素は、アイデアと2つの基礎語を表すタプルになります：<em>C = { (i, b1, b2) ∣ b1 ∈ B, b2 ∈ B, i ∈ I }</em>。</p>
+<p>たとえば、以下のような3つの単語が <em>I</em> に含まれているとします：</p>
+<blockquote>
+<p>sky</p>
+</blockquote>
+<blockquote>
+<p>water</p>
+</blockquote>
+<blockquote>
+<p>rain</p>
+</blockquote>
+<p>この場合、最適な結果は <code>sky</code> と <code>water</code> を基礎語に選び、<code>rain</code> を <code>skywater</code> という複合語で表現することだと言えるでしょう。つまり、基礎語の集合は以下のようになります：</p>
+<blockquote>
+<p><em>B</em> = {sky, water}</p>
+</blockquote>
+<p>そして、それらが組み合わさって以下の複合語の集合が得られます：</p>
+<blockquote>
+<p><em>C</em> = {(rain, sky, water)}</p>
+</blockquote>
+<p>実際の言語では <em>I</em> が何千、何万といった規模になるため<sup class="footnote-reference"><a href="#vo_2">3</a></sup>、これを手作業で行うのは現実的ではありません。しかし、<em>I</em> から<em>B</em> と <em>C</em> を生み出す処理を、<em>I</em>の要素を<em>B</em>にコピーするか<em>I</em>の要素を表す複合語を作り出すかを順次に選択する長い決定の連続とみなすことができます。決定空間は広大になりますが、自動探索することは可能です。自動探索のためには、結果を評価する基準が必要になります。</p>
+<p>たとえば、以下のような関数 <em>S(I, B, C)</em> を評価基準とすることが考えられます：</p>
+<ol>
+<li><em>C</em> に含まれる各複合語の質を最大化する</li>
+<li>多数の複合語に使用される基礎語の数を最小化する</li>
+<li>#2を損なわない範囲で可能な限り多くの複合語を作る<sup class="footnote-reference"><a href="#vo_3">4</a></sup></li>
+</ol>
+<h2 id="si-noshi-mi-montekaruromu-tan-suo">私の試み（モンテカルロ木探索）</h2>
+<p><a href="https://ja.wikipedia.org/wiki/%E3%83%A2%E3%83%B3%E3%83%86%E3%82%AB%E3%83%AB%E3%83%AD%E6%9C%A8%E6%8E%A2%E7%B4%A2">モンテカルロ木探索</a>（MCTS）のアルゴリズムはゲームAIのものと認識されることが多いと思いますが、評価基準さえあれば決定の連続としてモデル化できるあらゆる問題に適用できます。私は最適化手法の専門家ではないですが、この手法は本プロジェクトに適切であるように思えます。<a href="https://mcts.ai/about/index.html">こちらのページ</a>にMCTSの概要が掲載されていますので、ここでは基本的な考え方だけ説明します。ただし図があると非常にわかりやすくなってくるので、それだけは借りたいと思います。</p>
+<p><img src="https://joshuatanner.dev/ja/blog/posts/blog-vocabulary-optimization/mcts.png" alt="MCTSの図解" /></p>
+<p>MCTSは、以下の4つのステップを繰り返して行われます：</p>
+<ol>
+<li><strong>選択:</strong> ルートから始めて、スコアを考慮しながら有望な葉ノードを探します。</li>
+<li><strong>展開:</strong> その葉ノードに1つの子ノードを生成して追加します。</li>
+<li><strong>シミュレーション:</strong> 完成または深さの最大値に至るまでノードの生成を繰り返し、上記の子ノードの仮サブツリーを構築してスコアします。</li>
+<li><strong>逆伝播:</strong> スコアを根ノードまで伝播します。</li>
+</ol>
+<p>理論上、良い評価関数があり、かつハイパーパラメータをうまく調整して探索と活用のバランスを取れれば、MCTSは高得点の状態（結果）に至るパスを見つけてくれます。本プロジェクトでその高得点の状態というのは、パスにある各ノードで行われた選択に構造された複合語の語彙です。</p>
+<p>実装の複雑さを抑えるため、今回は複合語の選択と作成の最適化だけを目指し、生成される複合語の目標数を <em>I</em>のサイズの一定割合に固定しました。つまり、前節の基準で挙げた#1（複合語の質）と#2（基本語の使用過多を最小化）のみを最適化対象としました。なのでMCTSツリーの各ノードは、未使用のアイデアを1つ選択し、2つの基本語を選択して組み合わせ、それによって得られる複合語を<em>C</em>に追加する操作を表すことになりました。</p>
+<h3 id="fu-he-yu-nosheng-cheng-toping-jia">複合語の生成と評価</h3>
+<p>生成される複合語がそのアイデアと意味的に関連する単語で構成されるように、<a href="https://conceptnet.io/">ConceptNet</a> 用いて候補単語を集める手法を取りました。ConceptNet は、英単語のノードを意味的な関係を表すエッジで結ぶ知識グラフです。アイデアの英単語に接続されたエッジをたどって基本語を探すことで、複合語が表すアイデアとそれを構成する単語の間に何らかの意味的な関係があることを保証できます。理論上はこれで<code>firefighter</code> のようなわかりやすい言葉を目指し、<code>honeymoon</code> のような直感的ではない複合語を避けられます。</p>
+<p>具体的には、アイデアがランダムに <em>I</em> から選ばれ、ConceptNetで収集された候補の中から <em>I</em> にも含まれる単語がランダムに複合語を構成する基本語として選ばれて複合語が生成されます。このときに選ばれた単語は <em>B</em> に追加されます。展開とシミュレーションの際にスコアを活用して子ノードを選ぶ方法も試しましたが、処理速度が大幅に低下しました。また、理論上スコの計算をシミュレーション後にのみ行っても、逆伝播が各ノードのスコアを調整してくれるので、そうさせてもらいました。</p>
+<p>複合語の評価関数の開発だけでも中々の難題なので、今回は最もシンプルな方法を取り、アイデアを表す単語と構成する基本語の単語ベクトル間のコサイン類似度を評価関数として利用しました。スコアは次の式で計算されます：<br />
+<code>score(compound) = (similarity(b1, i) + similarity(b2, i) + relationScore) / 3</code><br />
+ここで、relationScore は ConceptNet における関係の種類ごとに手動で設定された値です（例：x <code>is a</code> y は x <code>desires</code> y より高スコア）。</p>
+<h3 id="mctsnoping-jia-guan-shu-sukoaringu">MCTSの評価関数（スコアリング）</h3>
+<p>MCTSで使用する評価関数は、特定のノードや複合語ではなくツリーを下る経路によって得られる状態を評価するものになります。この場合、状態とは生成された複合語集合 <em>C</em> と、各基本語の使用回数の2つを指します。上述の基準#1（複合語の質）と#2（基本語の使用過多を最小化）を最適化するため、各複合語のスコアの合計を基本語の使用回数の二乗和で割った値をスコアとしました。</p>
+<h2 id="jie-guo">結果</h2>
+<p>これまでの説明から明らかだと思いますが、動作するプロトタイプにたどり着くためにいくつか手を抜きました。スコアリング関数がかなり適当だったことに加え、ノートPCの計算能力では MCTS の反復を十分に回せなかった結果、問題に対する良い解決策と呼べるものにはなりませんでした。とはいえ、いくつか共有する価値のある出力が得られたと思います。<a href="https://github.com/Mindful/wordgen">こちら</a>にコードを公開しているので、興味のある方はより良い方法に挑戦してみてください。</p>
+<h3 id="chu-li-li">出力例</h3>
+<p>以下は実際に生成された結果の一部です（厳密に言えば組み合わせは順序なしです）：</p>
+<ul>
+<li>segment + year = month</li>
+<li>crime + theft = robbery</li>
+<li>beach + edge = shore</li>
+<li>act + wedding = marriage</li>
+<li>cry + vegetable = onion</li>
+<li>computer + storage = disk</li>
+<li>air + crime = pollution</li>
+<li>bottom + dress = skirt</li>
+</ul>
+<p>上記の例の中に、結婚を意味する<code>act + wedding</code>のようにやや抽象的な組み合わせもありますが、我ながら<code>cry + vegetable</code>が玉ねぎの意味になっているのはかなり良かったです。しかしここで重要なのは、どの例の複合語も表しているアイデアに合った組み合わせになっています。玉ねぎは人を泣かせる野菜だし、<code>segment + year</code>になった月を意味する複合語も1年の一部です。とはいえ、出力の大半はそれほどうまく行っていません。失敗例もいくつか記載します。</p>
+<ul>
+<li>class + senior = freshman</li>
+<li>kitchen + meal = cook</li>
+<li>chicken + male = hen</li>
+</ul>
+<p>多くの出力と同じくこれらの3語は、アイデアの単語と似ている文脈に出てくるがそのアイデアを表すには良くない単語に構成されています。これはまさに単語ベクトル（分散意味論）に基づいた評価関数を用いたせいです。全出力は<a href="https://github.com/Mindful/wordgen/blob/main/results/generations_simple.txt">こちら</a>にあります。</p>
+<h2 id="zui-hou-ni">最後に</h2>
+<p>MCTSを用いて複合語を生成するしっかりした実装や優れた評価関数の開発は、それ自体で研究論文になり得ます。ちゃんとしたものにするにはせめて以下が必要でしょう：</p>
+<ul>
+<li>優れた複合語の評価関数</li>
+<li>複合語として表現されるアイデアの数も探索可能なMCTSの実装</li>
+<li>大量の計算資源</li>
+</ul>
+<p>さらに、次のような要素もあった方がよいかもしれません：</p>
+<ul>
+<li>MCTSでの子ノード生成を賢くする評価関数（完全にランダムより良い方法）</li>
+<li>ConceptNet以外の、アイデアと意味的関係のある単語を探せるデータ源</li>
+</ul>
+<p>本プロジェクトを論文レベルまで引き上げるつもりはありませんが、人工言語の構築に役立つ可能性のある面白いプロジェクトだと思います。もしこの取り組みをさらに発展させたい方がいれば、遠慮なくご連絡ください。</p>
+<hr/>
+<div class="footnote-definition" id="vo_4"><sup class="footnote-definition-label">1</sup>
+<p><a href="https://ja.wikipedia.org/wiki/%E7%94%9F%E7%94%A3%E6%80%A7_(%E8%A8%80%E8%AA%9E%E5%AD%A6)">生産性</a>は言語学の用語です。</p>
+</div>
+<div class="footnote-definition" id="vo_1"><sup class="footnote-definition-label">2</sup>
+<p>もちろん、2語以上の複合語も存在しますが、2語の複合語が一般的です。また、2語の複合語に限定することで、問題の枠組みを管理しやすくなります。</p>
+</div>
+<div class="footnote-definition" id="vo_2"><sup class="footnote-definition-label">3</sup>
+<p>例外は100語余りしかないトキポナ（Toki Pona）です。</p>
+</div>
+<div class="footnote-definition" id="vo_3"><sup class="footnote-definition-label">4</sup>
+<p>複合語に使われる基本語の数を最小化することと、複合語の数を最大化することには必然的なトレードオフがあります。というのも、<em>I</em>（基本的なアイデアの集合）が有限であるため、<em>I</em>から複合語として表現するアイデアを増やすほど、複合語を作るために選べる基本語の数が減るからです。</p>
+</div>
+
+    </div>
+  </div>
+
+
+			</div>
+
+
+
+			
+			<div class="flex flex-row md:flex-col md:shrink-[0.15] bg-transparent md:h-full md:mr-5 md:mt-10 bg-transparent md:py-0 -my-5 space-x-8 md:space-x-0">
+				<a href="https://github.com/Mindful">
+					<img src="/images/social-github.svg" alt="github" class="w-auto h-auto md:w-2/3 md:h-2/3 pt-2 pb-2"/>
+				</a>
+				<a href="https://www.linkedin.com/in/joshuatanner2">
+					<img src="/images/social-linkedin.svg" alt="linkedin" class="w-auto h-auto md:w-2/3 md:h-2/3 pt-2 pb-2"/>
+				</a>
+				<a href="https://scholar.google.com/citations?user=OqYthY0AAAAJ&h">
+					<img src="/images/social-scholar.svg" alt="google scholar" class="w-auto h-auto md:w-2/3 md:h-2/3 pt-2 pb-2"/>
+				</a>
+				<a href="https://stackexchange.com/users/5319885/mindful">
+					<img src="/images/social-se.svg" alt="stack exchange" class="w-auto h-auto md:w-2/3 md:h-2/3 pt-2 pb-2"/>
+				</a>
+				<a href="https://twitter.com/mindful_jt">
+					<img src="/images/social-twitter.svg" alt="twitter" class="w-auto h-auto md:w-2/3 md:h-2/3 pt-2 pb-2"/>
+				</a>
+				<a href="mailto:mindful.jt@gmail.com">
+					<img src="/images/social-email.svg" alt="email" class="w-auto h-auto md:w-2/3 md:h-2/3 pt-2 pb-2"/>
+				</a>
+			</div>
+			
+
+		</div>
+
+	</body>
+</main>
+</html>

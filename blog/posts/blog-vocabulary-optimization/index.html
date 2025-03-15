@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	
+		
+		
+	
+
+	
+		
+		
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<link rel="stylesheet" href="https://joshuatanner.dev/styles/styles.css" />
+	<link rel="icon" type="image/x-icon" href="/images/favicon.png">
+	<meta charset="UTF-8">
+
+	<title>Onion = Cry Vegetable: Generating compound words for artificial languages</title>
+	<meta name="og:title" content="Onion = Cry Vegetable: Generating compound words for artificial languages" />
+	<meta name="twitter:title" content="Onion = Cry Vegetable: Generating compound words for artificial languages" />
+
+	<meta name="description" content="Using Monte Carlo Tree Search to try and generate vocabularies of compound words that can be used in artificial languages" />
+  <meta name="og:description" content="Using Monte Carlo Tree Search to try and generate vocabularies of compound words that can be used in artificial languages" />
+ 	<meta name="twitter:description" content="Using Monte Carlo Tree Search to try and generate vocabularies of compound words that can be used in artificial languages" />
+
+ 	<meta property="og:url" content="https://joshuatanner.dev/blog/posts/blog-vocabulary-optimization/" />
+ 	<meta property="og:type" content="website" />
+ 	<meta property="og:site_name" content="Joshua Tanner" />
+
+ 	<meta property="og:image" content="/images/face.png" />
+	<meta property="og:image:alt" content="Joshua Tanner&#x27;s personal site" />
+
+<meta name="twitter:image" content="/images/face.png" />
+<meta name="twitter:image:alt" content="Joshua Tanner&#x27;s personal site" />
+</head>
+
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-DNWSN122JK"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-DNWSN122JK');
+</script>
+
+
+<main>
+	<nav class="flex bg-green p-0 h-16" style="box-shadow: 0px 3px 10px 0px #4d4d4d;">
+		<div class="flex items-center flex-shrink-0 text-white mr-6 ml-6">
+			<!-- Replace LangLink with a tag -->
+			<a href="https://joshuatanner.dev/" class="text-white"><span>Joshua Tanner</span></a>
+		</div>
+		<div style="border-left: 1px solid white; height: 100%;" class="mr-6"></div>
+
+		<div class="flex w-full items-center text-white">
+
+			<div class="hidden sm:flex">
+				<a href='https://joshuatanner.dev/translation/' class="text-white mr-4">TRANSLATION</a>
+				<a href='https://joshuatanner.dev/blog/' class="text-white">BLOG</a>
+			</div>
+
+			<div class="relative content-center -ml-4 sm:hidden">
+				<input type="checkbox" id="sortbox" class="toggler"/>
+				<div class="hamburger"><div></div></div>
+
+				<div id="sortboxmenu" class="absolute mt-2 right-1 top-full min-w-max shadow rounded hidden bg-gray-300 border border-gray-400 transition delay-75 ease-in-out z-10">
+					<ul class="block text-right text-gray-900">
+						<li><a href='https://joshuatanner.dev/translation/' class="block px-3 py-2 bg-green text-white">TRANSLATION</a></li>
+						<li><a href='https://joshuatanner.dev/blog/' class="block px-3 py-2 bg-green text-white">BLOG</a></li>
+					</ul>
+				</div>
+			</div>
+
+			
+				<!-- If the current page is in English, show link to Japanese. Delete "//" from URLS -->
+				
+				<a href="https:&#x2F;&#x2F;joshuatanner.dev&#x2F;ja&#x2F;blog&#x2F;posts&#x2F;blog-vocabulary-optimization" class="absolute md:right-8 right-4">日本語</a>
+			
+
+		</div>
+	</nav>
+
+	<body>
+
+		<div class="flex md:flex-row flex-col px-5 md:pr-0 items-center md:items-start">
+			<div class="flex m-10 w-full flex-col">
+				
+
+  <div class="flex p-8 sm:p-14 bg-white shadowed w-full flex-col mb-6">
+    <header class="text-3xl md:text-4xl my-4">
+	    
+		    Onion = Cry Vegetable: Generating compound words for artificial languages
+		
+    </header>
+    <span class="mb-2">2025-02-16</span>
+    <div class="blogpost">
+      <p>One of the things that struck me about learning Japanese is that once you know a decent number of kanji, there are a lot of words you can read and understand without ever having seen before. This is because kanji often convey specific meanings: the word for building (<code>建物</code>) is <code>build</code>+<code>thing</code>, confidence (<code>自信</code>) is <code>self</code>+<code>believe</code>, etc. In some cases you can even guess the kanji of a word you hear for the first time, and get to its meaning that way.</p>
+<p>There are cases in English where you can guess a word you've never seen before, but most of them are just instances of productive<sup class="footnote-reference"><a href="#vo_4">1</a></sup> affixes like <code>-ness</code> as in <code>kindness</code> or <code>re-</code> in <code>rewrite</code>, or words with a recognizable latin root. Arguably, the closest thing English has to words that are guessable from their kanji is compound words. Not all of these are easy to guess from their constituents, but some are: we have <code>mailbox</code>, <code>firefighter</code>, <code>waterfall</code> and more. This matters because easily guessable compound words reduce the effort required for memorizing new vocabulary. For example, <a href="https://en.wikipedia.org/wiki/Esperanto">Esperanto</a> - the most widely used constructed language - makes extensive use of compounding as well as productive affixes (although we are only talking about compounding today).</p>
+<p>The question now is whether there is a decent way to automate the process of generating compounds. This involves both considerations about individual compounds - the combined words have to be semantically related to the idea expressed by the compound in order to be guessable - and the whole vocabulary, since the more compounds a word is used in, the less useful it becomes as a hint. So, we need a method that can consider multiple critera while searching for an optimal vocabulary of compounds.</p>
+<h2 id="as-a-search-problem">As a search problem</h2>
+<p>Our starting point is a set of meanings that we want to represent with words (compound or not), which we will call ideas and represent with English words. Given this base set of ideas <em>I</em>, we can think of the process of constructing a vocabulary as the process of selecting a set of base words <em>B</em> from <em>I</em> (<em>B ⊂ I</em>), and expressing the remaining elements of <em>I</em> as compounds of two words from <em>B</em><sup class="footnote-reference"><a href="#vo_1">2</a></sup>.This results in a set of compounds <em>C</em>, where each element is a tuple representing an expressed idea and two base words: <em>C = { (i, b1, b2) ∣ b1 ∈ B, b2 ∈ B, i ∈ I }</em>.</p>
+<p>For example, say that <em>I</em> was the three words below:</p>
+<blockquote>
+<p>sky</p>
+</blockquote>
+<blockquote>
+<p>water</p>
+</blockquote>
+<blockquote>
+<p>rain</p>
+</blockquote>
+<p>I would say that the optimal outcome here is to take <code>sky</code> and <code>water</code> as base words, and express <code>rain</code> as <code>skywater</code>. So we have the two aforementioned base words, which combine to form a compound <code>skywater</code>.</p>
+<blockquote>
+<p><em>B</em> = {sky, water}</p>
+</blockquote>
+<blockquote>
+<p><em>C</em> = {(rain, sky, water)}</p>
+</blockquote>
+<p>Unfortunately, for most actual languages <em>I</em> is going to be thousands or tens of thousands of elements<sup class="footnote-reference"><a href="#vo_2">3</a></sup>, making it infeasible to do this manually. However, building <em>B</em> and <em>C</em> from <em>I</em> can be thought of as a lengthy sequence of choices, where at each step we choose to either copy an element of <em>I</em> to <em>B</em>, or to express it as a compound of elements from <em>B</em> and add that combination to <em>C</em>. This means that while the decision space is very large, we can search it automatically. We just need some criteria to score possible results.</p>
+<p>For example, a scoring function <em>S(I, B, C)</em> could try to:</p>
+<ol>
+<li>Maximize the quality of each compound in <em>C</em></li>
+<li>Minimize the number of base words used in a large number of compounds</li>
+<li>Maximize the number of compounds to the extent possible without violating #2<sup class="footnote-reference"><a href="#vo_3">4</a></sup></li>
+</ol>
+<h2 id="my-attempt-monte-carlo-tree-search">My attempt (Monte Carlo Tree Search)</h2>
+<p>The <a href="https://en.wikipedia.org/wiki/Monte_Carlo_tree_search">Monte Carlo Tree Search</a> (MCTS) algorithm is best known for its use in game-playing AI, but it is usable for anything that can be modeled as a sequence of decisions, as long as you have a way to score outcomes. It seemed like a natural choice for this problem, although I'm not an expert in optimization methods. <a href="https://mcts.ai/about/index.html">This page</a> provides a good overview of MCTS, so I will cover only the basic ideas here. I will borrow the graphic they used though, because it communicates the core ideas pretty well.</p>
+<p><img src="https://joshuatanner.dev/blog/posts/blog-vocabulary-optimization/mcts.png" alt="MCTS graphic" /></p>
+<p>MCTS essentially consists of four steps repeated iteratively.</p>
+<ol>
+<li><strong>Selection:</strong> starting from the root, travel down the tree looking at node scores to find a promising leaf node.</li>
+<li><strong>Expansion:</strong> generate a single child for that leaf node.</li>
+<li><strong>Simulation:</strong> repeatedly generate children to build out a transient subtree of the aforementioned child node, up to completion or a maximum depth, and score it.</li>
+<li><strong>Backpropagation:</strong> update the scores of each node along the path to the child node generated in step #2 based on the result of the simulation.</li>
+</ol>
+<p>The idea is that if you have a good scoring function and do a decent job tuning hyperparameters to balance exploration and exploitation, MCTS will find a path down the tree that leads to a high-scoring state. In our case, that means a good compound vocabulary, built by the choices made at each node in the path. To make implementation simpler, I only tried to optimize compound selection and creation, fixing the target number of generated compounds as a percentage of the size of <em>I</em>. That is, I only tried to optimize #1 and #2 of the criteria from the end of the previous section. Consequently, each node in the MCTS tree corresponded to selecting one yet unused idea from <em>I</em>, choosing two base words from <em>B</em> to combine, and adding the resulting compound to <em>C</em>.</p>
+<h3 id="generating-and-evaluating-compounds">Generating and Evaluating Compounds</h3>
+<p>In order to make sure that the words combined to generate compounds were semantically related to the idea that they represented, I used <a href="https://conceptnet.io/">ConceptNet</a> to gather candidates for words to combine. ConceptNet is a knowledge graph connecting English word nodes with edges representing semantic relationships; traversing the edges connected to the idea for a compound to find base words to combine ensures there is some kind of semantic relationship between the idea expressed by the compound and the words that compose it. That is, we want something self-explanatory like <code>firefighter</code> and not something like <code>honeymoon</code>.</p>
+<p><img src="https://joshuatanner.dev/blog/posts/blog-vocabulary-optimization/concept_net.png" alt="Concept net" /></p>
+<p>Concretely, for each generation, an idea is chosen randomly from ideas in <em>I</em>, and words to be combined into a compound are chosen randomly from the subset of candidates gathered from ConceptNet that were also in <em>I</em>. Any words chosen this way are added to <em>B</em>. I experimented with using scoring to choose better child nodes during expansion and simulation, but this dramatically slowed down processing. Also, theoretically scoring can be done only at the end of simulation and then backpropagation will take care of individual node scores, so I scored only at the end of simulation.</p>
+<p>Developing a good scoring function for evaluating word combinations as compound words is a difficult task on its own, so I opted for the simplest thing I could think of: word vector cosine similarity of the words used in the compound to the word representing the idea. That is, the score was the average of cosine similarity for the two base words and a relation score based on manually assigned values for types of relations in ConceptNet (I.E. x <code>is a</code> y should score higher than x <code>desires</code> y, etc.). So we end up with, <em>score(compound) = (similarity(b1, i) + similarity(b2, i) + relationScore) / 3</em>.</p>
+<h3 id="mcts-scoring-function">MCTS Scoring function</h3>
+<p>The scoring function used for MCTS needs to be able to score states resulting from a given path down the tree, as opposed to specific nodes or compounds. In this case, a state is just a set of generated compounds <em>C</em>, along with counts for each base word in <em>B</em>, where we define base words as any words used in compounds. I tried to optimize the aforementioned criteria #1 (compound quality) and #2 (minimal base words with too many uses) by computing the score as the sum of the score for each compound divided by the sum of squares for base word usage counts.</p>
+<p><img src="https://joshuatanner.dev/blog/posts/blog-vocabulary-optimization/score_func.png" alt="Scoring function" /></p>
+<h2 id="results">Results</h2>
+<p>As is likely obvious from my explanation up until now, I took some shortcuts with implementation in order to get to a working proof of concept. Consequently, between a fairly flimsy scoring function and not having enough compute on my laptop to run large numbers of MCTS iterations, I did not end up with something I would call a good solution to the problem. However, the process did yield a few outputs that I think are worth sharing. The code is available <a href="https://github.com/Mindful/wordgen">here</a> for anyone interested in trying to do this better.</p>
+<h3 id="cherrypicked-outputs">Cherrypicked Outputs</h3>
+<p>These are all actual outputs of the process, although the combinations are technically unordered.</p>
+<ul>
+<li>segment+year = month</li>
+<li>crime+theft = robbery</li>
+<li>beach+edge = shore</li>
+<li>act+wedding = marriage</li>
+<li>cry+vegetable = onion</li>
+<li>computer+storage = disk</li>
+<li>air+crime = pollution</li>
+<li>bottom+dress = skirt</li>
+</ul>
+<p>Some of the combinations are kind of abstract, like <code>act+wedding</code> for <code>marriage</code>, but I quite like <code>cry+vegetable</code> for <code>onion</code>. In all cases though we can see that the compounds make some kind of sense for the ideas they represent; onions are vegetables that make you cry, a month is a segment of a year, etc. That said, most of the outputs are not this good - below are a few examples I don't think turned out very well.</p>
+<ul>
+<li>class+senior = freshman</li>
+<li>kitchen+meal = cook</li>
+<li>chicken+male = hen</li>
+</ul>
+<p>Like many of the other outputs, these three are made up of words that show up in similar contexts to the idea word but are not a good fit to express the intended idea, which is a symptom of using a scoring method based on word vectors (distributional semantics). Full results can be seen <a href="https://github.com/Mindful/wordgen/blob/main/results/generations_simple.txt">here</a>.</p>
+<h2 id="final-thoughts">Final Thoughts</h2>
+<p>A robust implementation of MCTS for generating compound words, including good scoring function(s), could probably be its own paper. I think to get something working well, you would at least need:</p>
+<ul>
+<li>A good compound scoring function</li>
+<li>An MCTS implementation that could also explore the number of ideas expressed as compounds</li>
+<li>A lot of compute</li>
+</ul>
+<p>You might also want:</p>
+<ul>
+<li>Intermediate scoring to be smarter about generating child nodes in MCTS (I.E. smarter than completely random)</li>
+<li>More tools than just ConceptNet for finding words with semantic relations to the idea being expressed</li>
+</ul>
+<p>I am not going to take this project all the way to a paper, but I do think it's an interesting project that has the potential to be useful for artificial language construction. If you happen to want to pick up the torch and flesh this out though, please don't hesitate to reach out.</p>
+<hr/>
+<div class="footnote-definition" id="vo_4"><sup class="footnote-definition-label">1</sup>
+<p><a href="https://en.wikipedia.org/wiki/Productivity_(linguistics)">Productivity</a> is a linguistics term.</p>
+</div>
+<div class="footnote-definition" id="vo_1"><sup class="footnote-definition-label">2</sup>
+<p>Obviously compounds of more than two words exist, but two-word compounds are much more common, and limiting ourselves to compounds of only two words helps keeps the problem framing manageable.</p>
+</div>
+<div class="footnote-definition" id="vo_2"><sup class="footnote-definition-label">3</sup>
+<p>The exception being Toki Pona, with only a little more than a hundred words.</p>
+</div>
+<div class="footnote-definition" id="vo_3"><sup class="footnote-definition-label">4</sup>
+<p>There is a natural tension between minimizing base words used in many compounds and maximizing the number of compounds, because <em>I</em> is finite - the more ideas from <em>I</em> we express as compounds, the fewer base words we have to choose from for making any given compound.</p>
+</div>
+
+    </div>
+  </div>
+
+
+			</div>
+
+
+
+			
+			<div class="flex flex-row md:flex-col md:shrink-[0.15] bg-transparent md:h-full md:mr-5 md:mt-10 bg-transparent md:py-0 -my-5 space-x-8 md:space-x-0">
+				<a href="https://github.com/Mindful">
+					<img src="/images/social-github.svg" alt="github" class="w-auto h-auto md:w-2/3 md:h-2/3 pt-2 pb-2"/>
+				</a>
+				<a href="https://www.linkedin.com/in/joshuatanner2">
+					<img src="/images/social-linkedin.svg" alt="linkedin" class="w-auto h-auto md:w-2/3 md:h-2/3 pt-2 pb-2"/>
+				</a>
+				<a href="https://scholar.google.com/citations?user=OqYthY0AAAAJ&h">
+					<img src="/images/social-scholar.svg" alt="google scholar" class="w-auto h-auto md:w-2/3 md:h-2/3 pt-2 pb-2"/>
+				</a>
+				<a href="https://stackexchange.com/users/5319885/mindful">
+					<img src="/images/social-se.svg" alt="stack exchange" class="w-auto h-auto md:w-2/3 md:h-2/3 pt-2 pb-2"/>
+				</a>
+				<a href="https://twitter.com/mindful_jt">
+					<img src="/images/social-twitter.svg" alt="twitter" class="w-auto h-auto md:w-2/3 md:h-2/3 pt-2 pb-2"/>
+				</a>
+				<a href="mailto:mindful.jt@gmail.com">
+					<img src="/images/social-email.svg" alt="email" class="w-auto h-auto md:w-2/3 md:h-2/3 pt-2 pb-2"/>
+				</a>
+			</div>
+			
+
+		</div>
+
+	</body>
+</main>
+</html>

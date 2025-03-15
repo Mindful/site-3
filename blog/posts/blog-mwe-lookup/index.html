@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	
+		
+		
+	
+
+	
+		
+		
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<link rel="stylesheet" href="https://joshuatanner.dev/styles/styles.css" />
+	<link rel="icon" type="image/x-icon" href="/images/favicon.png">
+	<meta charset="UTF-8">
+
+	<title>Multiword expression lookup: multiset subset retrieval with tries</title>
+	<meta name="og:title" content="Multiword expression lookup: multiset subset retrieval with tries" />
+	<meta name="twitter:title" content="Multiword expression lookup: multiset subset retrieval with tries" />
+
+	<meta name="description" content="Exploring how to gather possible multiword expressions for a sentence, and how trie trees can solve the problem efficiently" />
+  <meta name="og:description" content="Exploring how to gather possible multiword expressions for a sentence, and how trie trees can solve the problem efficiently" />
+ 	<meta name="twitter:description" content="Exploring how to gather possible multiword expressions for a sentence, and how trie trees can solve the problem efficiently" />
+
+ 	<meta property="og:url" content="https://joshuatanner.dev/blog/posts/blog-mwe-lookup/" />
+ 	<meta property="og:type" content="website" />
+ 	<meta property="og:site_name" content="Joshua Tanner" />
+
+ 	<meta property="og:image" content="/images/face.png" />
+	<meta property="og:image:alt" content="Joshua Tanner&#x27;s personal site" />
+
+<meta name="twitter:image" content="/images/face.png" />
+<meta name="twitter:image:alt" content="Joshua Tanner&#x27;s personal site" />
+</head>
+
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-DNWSN122JK"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-DNWSN122JK');
+</script>
+
+
+<main>
+	<nav class="flex bg-green p-0 h-16" style="box-shadow: 0px 3px 10px 0px #4d4d4d;">
+		<div class="flex items-center flex-shrink-0 text-white mr-6 ml-6">
+			<!-- Replace LangLink with a tag -->
+			<a href="https://joshuatanner.dev/" class="text-white"><span>Joshua Tanner</span></a>
+		</div>
+		<div style="border-left: 1px solid white; height: 100%;" class="mr-6"></div>
+
+		<div class="flex w-full items-center text-white">
+
+			<div class="hidden sm:flex">
+				<a href='https://joshuatanner.dev/translation/' class="text-white mr-4">TRANSLATION</a>
+				<a href='https://joshuatanner.dev/blog/' class="text-white">BLOG</a>
+			</div>
+
+			<div class="relative content-center -ml-4 sm:hidden">
+				<input type="checkbox" id="sortbox" class="toggler"/>
+				<div class="hamburger"><div></div></div>
+
+				<div id="sortboxmenu" class="absolute mt-2 right-1 top-full min-w-max shadow rounded hidden bg-gray-300 border border-gray-400 transition delay-75 ease-in-out z-10">
+					<ul class="block text-right text-gray-900">
+						<li><a href='https://joshuatanner.dev/translation/' class="block px-3 py-2 bg-green text-white">TRANSLATION</a></li>
+						<li><a href='https://joshuatanner.dev/blog/' class="block px-3 py-2 bg-green text-white">BLOG</a></li>
+					</ul>
+				</div>
+			</div>
+
+			
+				<!-- If the current page is in English, show link to Japanese. Delete "//" from URLS -->
+				
+				<a href="https:&#x2F;&#x2F;joshuatanner.dev&#x2F;ja&#x2F;blog&#x2F;posts&#x2F;blog-mwe-lookup" class="absolute md:right-8 right-4">日本語</a>
+			
+
+		</div>
+	</nav>
+
+	<body>
+
+		<div class="flex md:flex-row flex-col px-5 md:pr-0 items-center md:items-start">
+			<div class="flex m-10 w-full flex-col">
+				
+
+  <div class="flex p-8 sm:p-14 bg-white shadowed w-full flex-col mb-6">
+    <header class="text-3xl md:text-4xl my-4">
+	    
+		    Multiword expression lookup: multiset subset retrieval with tries
+		
+    </header>
+    <span class="mb-2">2024-03-23</span>
+    <div class="blogpost">
+      <p>I've recently spent quite a bit of time thinking about how to find <a href="https://en.wikipedia.org/wiki/Multiword_expression">multiword expressions</a> (MWEs) in a sentence. MWEs are a pretty messy topic and there is a lot of ambiguity about what even counts as an MWE, but for today I want to put that aside and talk about approaches to automatically identifying MWEs. I am a fan of lexicon-based approaches to MWE identification, which just means that given a very large list of MWEs, you are trying to figure out which of them might be present in a given sentence. This can be broken down into a pipeline that looks something like this:</p>
+<ol>
+<li>Retrieve all of the MWEs that <em>could</em> be present in a sentence (the "possible MWEs") from the lexicon; this can also be thought of as filtering the lexicon down to just entries whose constituents are all present in the sentence. The majority of this blog post will be about how to do this efficiently, because with a poorly structured lexicon this can be quite slow.</li>
+<li>Gather all combinations of constituent words which could form a possible MWE in the sentence as "candidates"; this just means finding each combination of words in the sentence that correspond to a possible MWE. We will cover how to do this at the end of the post.</li>
+<li>Decide if each "candidate" is actually an MWE - that is, whether its constituents take on an idiomatic/non-compositional meaning. This requires a system capable of making judgements about meaning in context, which typically means machine learning. I published a <a href="https://aclanthology.org/2023.findings-emnlp.14/">paper</a> last year about one possible method to do this, but there are a variety of possible approaches, which are beyond the scope of this blog post.</li>
+</ol>
+<p><img src="https://joshuatanner.dev/blog/posts/blog-mwe-lookup/poster_sentence.png" alt="Example sentence" /></p>
+<p>For the above sentence, these three steps look like this:</p>
+<ol>
+<li>Retrieve <code>run_down</code>, <code>run_over</code>, <code>fall_down</code>, <code>fall_over</code> as possible MWEs - this is every MWE in our lexicon with all of its constituents present in the sentence.</li>
+<li>Find candidates for these MWEs by mapping each of them to groups of words in the sentence, as pictured in the above diagram.</li>
+<li>Filter these so that we keep only the candidates whose meaning is that of the relevant MWE. <code>fall_down</code> and <code>run_over</code> are obviously wrong, and <code>run_down</code> as an MWE means something like <code>(of a vehicle) to hit a person and knock them to the ground</code>, so we are left with <code>fall_over</code>.</li>
+</ol>
+<p>Note that there are sometimes multiple candidate word groups for a single MWE. For example, if we replace the last <code>down</code> with <code>over</code> for <code>I ran down the stairs and fell down</code>, there are now two combinations of words that can form <code>run_down</code> - one for <code>ran</code> and the first <code>down</code>, and another for <code>ran</code> and the second <code>down</code>. This is also why it is convenient to split step #1 and #2 into separate steps.</p>
+<h2 id="retrieving-possible-mwes">Retrieving possible MWEs</h2>
+<p>Now, the main topic: retrieving possible MWEs for step #1. While some MWEs have constraints on how they can be formed in a sentence, if we include verbal MWEs then there are very few guarantees. They do not have to be contiguous - see <code>put_down</code> in <code>She put her beloved dog down</code> - and worse, they do not even have to be in order - see <code>the beans have been spilled</code> for <code>spill_the_beans</code>. Finally, the constituent words of an MWE are not always unique, such as in <code>face_to_face</code>.</p>
+<p>Given that constituent words are neither required to be in order nor unique, the formalization of our possible MWE retrieval problem is: given a multiset <em>S</em> of words in the input sentence, and a set <em>L</em> containing multisets for each possible MWE, find all members of <em>L</em> that are strict subsets of <em>S</em>.</p>
+<p><img src="https://joshuatanner.dev/blog/posts/blog-mwe-lookup/equation.svg" alt="MWE retrieval equation" /></p>
+<p>This means a worst case runtime of <em>O(M * |L|)</em> where <em>M</em> is the average size of an MWE multiset, which is a pretty expensive upper bound. The naive approach of checking if every MWE in the lexicon is a subset of the words in the sentence will end up processing every MWE multiset for every sentence, and is consequently very slow.</p>
+<pre data-lang="python" style="background-color:#2b303b;color:#c0c5ce;" class="language-python "><code class="language-python" data-lang="python"><span style="color:#b48ead;">class </span><span style="color:#ebcb8b;">NaiveApproach</span><span style="color:#eff1f5;">:
+</span><span>    </span><span style="color:#b48ead;">def </span><span style="color:#96b5b4;">__init__</span><span>(</span><span style="color:#bf616a;">self</span><span>):
+</span><span>        </span><span style="color:#bf616a;">self</span><span>.data = [
+</span><span>            (mwe[&#39;</span><span style="color:#a3be8c;">lemma</span><span>&#39;], </span><span style="color:#bf616a;">Counter</span><span>(mwe[&#39;</span><span style="color:#a3be8c;">constituents</span><span>&#39;]))
+</span><span>            </span><span style="color:#b48ead;">for </span><span>mwe </span><span style="color:#b48ead;">in </span><span style="color:#bf616a;">get_mwes</span><span>()
+</span><span>        ]
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">def </span><span style="color:#8fa1b3;">search</span><span>(</span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">words</span><span>: list[str]) -&gt; list[str]:
+</span><span>        word_counter = </span><span style="color:#bf616a;">Counter</span><span>(words)
+</span><span>        </span><span style="color:#b48ead;">return </span><span>[
+</span><span>            mwe </span><span style="color:#b48ead;">for </span><span>mwe, constituents </span><span style="color:#b48ead;">in </span><span style="color:#bf616a;">self</span><span>.data
+</span><span>            </span><span style="color:#b48ead;">if </span><span style="color:#96b5b4;">all</span><span>(
+</span><span>                word_counter[constituent] &gt;= count
+</span><span>                </span><span style="color:#b48ead;">for </span><span>constituent, count </span><span style="color:#b48ead;">in </span><span>constituents.</span><span style="color:#bf616a;">items</span><span>()
+</span><span>            )
+</span><span>        ]
+</span></code></pre>
+<p>This code takes an average of 28 seconds on my laptop to process (call <code>search()</code> on) 1,000 sentences. Fortunately, we can make this much faster using a <a href="https://en.wikipedia.org/wiki/trie">trie</a><sup class="footnote-reference"><a href="#mwel_1">1</a></sup>. Tries are prefix trees most commonly built out of characters, but because we are dealing with words and not characters, we will build ours out of words.</p>
+<p><img src="https://joshuatanner.dev/blog/posts/blog-mwe-lookup/mwe_trie.png" alt="MWE trie" /></p>
+<p>Using the MWE trie as our lexicon, we can gather possible MWEs with a depth-first search starting at the root, which aborts when we hit a node for a word missing from the sentence. That is, we can traverse only the parts of the trie that are subsets of the words in the sentence.</p>
+<pre data-lang="python" style="background-color:#2b303b;color:#c0c5ce;" class="language-python "><code class="language-python" data-lang="python"><span style="color:#b48ead;">class </span><span style="color:#ebcb8b;">TrieNode</span><span style="color:#eff1f5;">:
+</span><span>    __slots__ = [&#39;</span><span style="color:#a3be8c;">lemma</span><span>&#39;, &#39;</span><span style="color:#a3be8c;">children</span><span>&#39;]
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">def </span><span style="color:#96b5b4;">__init__</span><span>(</span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">lemma</span><span>: Optional[str]):
+</span><span>    	</span><span style="color:#65737e;"># lemma represents a possible MWE that terminates at this node
+</span><span>        </span><span style="color:#bf616a;">self</span><span>.lemma = lemma  
+</span><span>        </span><span style="color:#bf616a;">self</span><span>.children = {}
+</span><span>
+</span><span>
+</span><span style="color:#b48ead;">class </span><span style="color:#ebcb8b;">Trie</span><span style="color:#eff1f5;">:
+</span><span>    </span><span style="color:#b48ead;">def </span><span style="color:#96b5b4;">__init__</span><span>(</span><span style="color:#bf616a;">self</span><span>):
+</span><span>        </span><span style="color:#bf616a;">self</span><span>.tree = </span><span style="color:#bf616a;">self</span><span>.</span><span style="color:#bf616a;">_build_tree</span><span>(</span><span style="color:#bf616a;">get_mwes</span><span>())
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">def </span><span style="color:#8fa1b3;">_build_tree</span><span>(</span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">mwes</span><span>: list[dict[str, str]]):
+</span><span>        root = </span><span style="color:#bf616a;">TrieNode</span><span>(</span><span style="color:#d08770;">None</span><span>)
+</span><span>        </span><span style="color:#b48ead;">for </span><span>mwe </span><span style="color:#b48ead;">in </span><span>mwes:
+</span><span>            curlevel = root
+</span><span>            </span><span style="color:#b48ead;">for </span><span>word </span><span style="color:#b48ead;">in </span><span>mwe[&#39;</span><span style="color:#a3be8c;">constituents</span><span>&#39;]:
+</span><span>                </span><span style="color:#b48ead;">if </span><span>word not in curlevel.children:
+</span><span>                    curlevel.children[word] = </span><span style="color:#bf616a;">TrieNode</span><span>(</span><span style="color:#d08770;">None</span><span>)
+</span><span>                curlevel = curlevel.children[word]
+</span><span>
+</span><span>            curlevel.lemma = mwe[&#39;</span><span style="color:#a3be8c;">lemma</span><span>&#39;]
+</span><span>
+</span><span>        </span><span style="color:#b48ead;">return </span><span>root
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">def </span><span style="color:#8fa1b3;">search</span><span>(</span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">sentence</span><span>: list[str]) -&gt; list[str]:
+</span><span>        counter = </span><span style="color:#bf616a;">Counter</span><span>(sentence)
+</span><span>        results = []
+</span><span>        </span><span style="color:#bf616a;">self</span><span>.</span><span style="color:#bf616a;">_search</span><span>(</span><span style="color:#bf616a;">self</span><span>.tree, counter, results)
+</span><span>        </span><span style="color:#b48ead;">return </span><span>results
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">def </span><span style="color:#8fa1b3;">_search</span><span>(</span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">cur_node</span><span>: TrieNode, </span><span style="color:#bf616a;">counter</span><span>: Counter, </span><span style="color:#bf616a;">results</span><span>: list):
+</span><span>        possible_next_constituents = [c </span><span style="color:#b48ead;">for </span><span>c </span><span style="color:#b48ead;">in </span><span>counter </span><span style="color:#b48ead;">if </span><span>counter[c] &gt; </span><span style="color:#d08770;">0 </span><span>and c in cur_node.children]
+</span><span>
+</span><span>        </span><span style="color:#b48ead;">for </span><span>constituent </span><span style="color:#b48ead;">in </span><span>possible_next_constituents:
+</span><span>            next_node = cur_node.children[constituent]
+</span><span>            counter[constituent] -= </span><span style="color:#d08770;">1
+</span><span>            </span><span style="color:#b48ead;">if </span><span>next_node.lemma is not </span><span style="color:#d08770;">None</span><span>:
+</span><span>                results.</span><span style="color:#bf616a;">append</span><span>(next_node.lemma)
+</span><span>            </span><span style="color:#bf616a;">self</span><span>.</span><span style="color:#bf616a;">_search</span><span>(next_node, counter, results)
+</span><span>            counter[constituent] += </span><span style="color:#d08770;">1
+</span></code></pre>
+<p>This allows us to store only a single copy of any prefixes shared between multiple MWEs in our lexicon, but the main benefit is that searching this way means we will expend no compute on MWEs whose first word is not present in the sentence. This is <em>much</em> faster, and gets through 1,000 sentences in 0.8 seconds on average. However, we can still make it a little faster.</p>
+<p>Word frequency in English is <a href="https://en.wikipedia.org/wiki/Zipf%27s_law">very imbalanced</a>, and many MWEs start with common words. For example, my relatively small lexicon has 169 MWEs starting with <code>in</code>, such as <code>in_theory</code>, <code>in_unison</code>, <code>in_vain</code>, etc. Since we only want MWEs whose constituents are all present in the sentence, it makes more sense to look at the words least likely to be present first - that is, the lowest frequency words. We can do this by sorting the constituent words in the MWEs before we insert them into the trie using precomputed <a href="https://raw.githubusercontent.com/arstgit/high-frequency-vocabulary/master/30k.txt">word frequency</a>, such that the lowest frequency words come first. This does mean that in rare cases where MWEs share the same words and are differentiated only by order (like <code>roast_pork</code> and <code>pork_roast</code>) we will need to attach multiple MWEs to one node in the trie, but this requires only minor changes.</p>
+<pre data-lang="python" style="background-color:#2b303b;color:#c0c5ce;" class="language-python "><code class="language-python" data-lang="python"><span style="color:#b48ead;">class </span><span style="color:#ebcb8b;">OrderedTrie</span><span style="color:#eff1f5;">:
+</span><span>	</span><span style="color:#65737e;"># not pictured here: 
+</span><span>    </span><span style="color:#65737e;"># 1) TrieNode now holds a list of lemmas instead of a single lemma
+</span><span>    </span><span style="color:#65737e;"># 2) _search needs one line changed to return all lemmas on a node 
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">def </span><span style="color:#96b5b4;">__init__</span><span>(</span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">word_data</span><span>: dict[str, int]):
+</span><span>    	</span><span style="color:#65737e;"># any missing words are treated as last in the frequency list
+</span><span>        </span><span style="color:#bf616a;">self</span><span>.word_freqs = </span><span style="color:#bf616a;">defaultdict</span><span>(</span><span style="color:#b48ead;">lambda</span><span>: </span><span style="color:#96b5b4;">len</span><span>(word_data), word_data)
+</span><span>        </span><span style="color:#bf616a;">self</span><span>.tree = </span><span style="color:#bf616a;">self</span><span>.</span><span style="color:#bf616a;">_build_tree</span><span>(</span><span style="color:#bf616a;">get_mwes</span><span>())
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">def </span><span style="color:#8fa1b3;">_reorder</span><span>(</span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">words</span><span>: list[str]) -&gt; list[str]:
+</span><span>        </span><span style="color:#65737e;"># sort by word frequency, then alphabetically in case
+</span><span>        </span><span style="color:#65737e;"># both words are missing from word_freqs
+</span><span>        </span><span style="color:#b48ead;">return </span><span style="color:#96b5b4;">sorted</span><span>(words, </span><span style="color:#bf616a;">key</span><span>=</span><span style="color:#b48ead;">lambda </span><span style="color:#bf616a;">w</span><span>: (</span><span style="color:#bf616a;">self</span><span>.word_freqs[w], w), </span><span style="color:#bf616a;">reverse</span><span>=</span><span style="color:#d08770;">True</span><span>)
+</span><span>
+</span><span>    </span><span style="color:#b48ead;">def </span><span style="color:#8fa1b3;">_build_tree</span><span>(</span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">mwes</span><span>: list[dict[str, str]]):
+</span><span>        root = </span><span style="color:#bf616a;">OrderedTrieNode</span><span>([])
+</span><span>        </span><span style="color:#b48ead;">for </span><span>mwe </span><span style="color:#b48ead;">in </span><span>mwes:
+</span><span>            curlevel = root
+</span><span>            </span><span style="color:#b48ead;">for </span><span>word </span><span style="color:#b48ead;">in </span><span style="color:#bf616a;">self</span><span>.</span><span style="color:#bf616a;">_reorder</span><span>(mwe[&#39;</span><span style="color:#a3be8c;">constituents</span><span>&#39;]):
+</span><span>                </span><span style="color:#b48ead;">if </span><span>word not in curlevel.children:
+</span><span>                    curlevel.children[word] = </span><span style="color:#bf616a;">OrderedTrieNode</span><span>(word)
+</span><span>                curlevel = curlevel.children[word]
+</span><span>
+</span><span>            curlevel.lemmas.</span><span style="color:#bf616a;">append</span><span>(mwe[&#39;</span><span style="color:#a3be8c;">lemma</span><span>&#39;])
+</span><span>
+</span><span>        </span><span style="color:#b48ead;">return </span><span>root
+</span></code></pre>
+<p>Using this sorted constituent trie approach, it takes only 0.5 seconds on average to process 1,000 sentences, which is about a 40% speedup over the aforementioned trie. The average time for each of the three methods can be seen in the graph below (log scale).</p>
+<p><img src="https://joshuatanner.dev/blog/posts/blog-mwe-lookup/average_time_by_method.png" alt="Average time by method" /></p>
+<p>Moving from the naive approach to using a trie is arguably a fairly obvious optimization; I think the interesting part is the further speedup we get from using word frequency to inform trie construction. Most importantly, it's also a good demonstration of how much it can help to have a good understanding of the data/domain you are trying to process. This further speedup was only made possible by thinking about what the distribution of the input data (words in English sentences) looks like.</p>
+<h2 id="mapping-retrieved-possible-mwes-to-candidate-word-groups">Mapping retrieved possible MWEs to candidate word groups</h2>
+<p>Now that we know how to retrieve our possible MWEs, let's look briefly at step #2: finding every combination of words in the sentence that could constitute a given MWE. For the sentence <code>I ran down the stairs and fell down</code> and the MWE <code>run_down</code>, we start by building simple representations of our sentence as tokens and our MWE as a multiset.</p>
+<pre data-lang="python" style="background-color:#2b303b;color:#c0c5ce;" class="language-python "><code class="language-python" data-lang="python"><span style="color:#b48ead;">from </span><span>collections </span><span style="color:#b48ead;">import </span><span>namedtuple, defaultdict
+</span><span style="color:#b48ead;">from </span><span>itertools </span><span style="color:#b48ead;">import </span><span>combinations, product
+</span><span>
+</span><span>token = </span><span style="color:#bf616a;">namedtuple</span><span>(&quot;</span><span style="color:#a3be8c;">Token</span><span>&quot;, [&quot;</span><span style="color:#a3be8c;">form</span><span>&quot;, &quot;</span><span style="color:#a3be8c;">idx</span><span>&quot;, &quot;</span><span style="color:#a3be8c;">lemma</span><span>&quot;])
+</span><span>sentence = [
+</span><span>    </span><span style="color:#bf616a;">token</span><span>(&quot;</span><span style="color:#a3be8c;">I</span><span>&quot;, </span><span style="color:#d08770;">0</span><span>, &quot;</span><span style="color:#a3be8c;">I</span><span>&quot;),
+</span><span>    </span><span style="color:#bf616a;">token</span><span>(&quot;</span><span style="color:#a3be8c;">ran</span><span>&quot;, </span><span style="color:#d08770;">1</span><span>, &quot;</span><span style="color:#a3be8c;">run</span><span>&quot;),
+</span><span>    </span><span style="color:#bf616a;">token</span><span>(&quot;</span><span style="color:#a3be8c;">down</span><span>&quot;, </span><span style="color:#d08770;">2</span><span>, &quot;</span><span style="color:#a3be8c;">down</span><span>&quot;),
+</span><span>    </span><span style="color:#bf616a;">token</span><span>(&quot;</span><span style="color:#a3be8c;">the</span><span>&quot;, </span><span style="color:#d08770;">3</span><span>, &quot;</span><span style="color:#a3be8c;">the</span><span>&quot;),
+</span><span>    </span><span style="color:#bf616a;">token</span><span>(&quot;</span><span style="color:#a3be8c;">stairs</span><span>&quot;, </span><span style="color:#d08770;">4</span><span>, &quot;</span><span style="color:#a3be8c;">stairs</span><span>&quot;),
+</span><span>    </span><span style="color:#bf616a;">token</span><span>(&quot;</span><span style="color:#a3be8c;">and</span><span>&quot;, </span><span style="color:#d08770;">5</span><span>, &quot;</span><span style="color:#a3be8c;">and</span><span>&quot;),
+</span><span>    </span><span style="color:#bf616a;">token</span><span>(&quot;</span><span style="color:#a3be8c;">fell</span><span>&quot;, </span><span style="color:#d08770;">6</span><span>, &quot;</span><span style="color:#a3be8c;">fall</span><span>&quot;),
+</span><span>    </span><span style="color:#bf616a;">token</span><span>(&quot;</span><span style="color:#a3be8c;">down</span><span>&quot;, </span><span style="color:#d08770;">7</span><span>, &quot;</span><span style="color:#a3be8c;">down</span><span>&quot;),
+</span><span>    </span><span style="color:#bf616a;">token</span><span>(&quot;</span><span style="color:#a3be8c;">.</span><span>&quot;, </span><span style="color:#d08770;">8</span><span>, &quot;</span><span style="color:#a3be8c;">.</span><span>&quot;),
+</span><span>]
+</span><span>
+</span><span style="color:#65737e;"># build a map of lemmas to tokens
+</span><span style="color:#65737e;"># so we can look up tokens by their lemma
+</span><span>lemma_to_tokens = </span><span style="color:#bf616a;">defaultdict</span><span>(list)
+</span><span style="color:#b48ead;">for </span><span>t </span><span style="color:#b48ead;">in </span><span>sentence:
+</span><span>    lemma_to_tokens[t.lemma].</span><span style="color:#bf616a;">append</span><span>(t)
+</span><span>
+</span><span style="color:#65737e;"># mwe: &quot;run_down&quot;
+</span><span>lemma_counter = {
+</span><span>    &quot;</span><span style="color:#a3be8c;">run</span><span>&quot;: </span><span style="color:#d08770;">1</span><span>,
+</span><span>    &quot;</span><span style="color:#a3be8c;">down</span><span>&quot;: </span><span style="color:#d08770;">1</span><span>,
+</span><span>}
+</span></code></pre>
+<p>The next part is confusing to look at, but what we're doing isn't actually that complicated. We represent tokens choices for each lemma in the MWE as lists of tuples, and want to gather all possible options. This is just <em>N</em> choose <em>K</em> for each lemma, where <em>N</em> is the number of times the given lemma appears in the sentence and <em>K</em> the number of times it appears in the MWE. These tuples will usually be only one element, except in MWEs that have repeated constituents such as <code>face</code> in <code>face_to_face</code>.</p>
+<pre data-lang="python" style="background-color:#2b303b;color:#c0c5ce;" class="language-python "><code class="language-python" data-lang="python"><span>candidate_word_combos = [
+</span><span>    </span><span style="color:#bf616a;">list</span><span>(</span><span style="color:#bf616a;">combinations</span><span>(lemma_to_tokens[lemma], lemma_counter[lemma]))
+</span><span>    </span><span style="color:#b48ead;">for </span><span>lemma </span><span style="color:#b48ead;">in </span><span>lemma_counter
+</span><span>]
+</span></code></pre>
+<p>Running this on our example input gives us:</p>
+<pre data-lang="python" style="background-color:#2b303b;color:#c0c5ce;" class="language-python "><code class="language-python" data-lang="python"><span>[
+</span><span>    [
+</span><span>        (</span><span style="color:#bf616a;">Token</span><span>(</span><span style="color:#bf616a;">form</span><span>=&#39;</span><span style="color:#a3be8c;">ran</span><span>&#39;, </span><span style="color:#bf616a;">idx</span><span>=</span><span style="color:#d08770;">1</span><span>, </span><span style="color:#bf616a;">lemma</span><span>=&#39;</span><span style="color:#a3be8c;">run</span><span>&#39;),)
+</span><span>    ], 
+</span><span>    [
+</span><span>        (</span><span style="color:#bf616a;">Token</span><span>(</span><span style="color:#bf616a;">form</span><span>=&#39;</span><span style="color:#a3be8c;">down</span><span>&#39;, </span><span style="color:#bf616a;">idx</span><span>=</span><span style="color:#d08770;">2</span><span>, </span><span style="color:#bf616a;">lemma</span><span>=&#39;</span><span style="color:#a3be8c;">down</span><span>&#39;),), 
+</span><span>        (</span><span style="color:#bf616a;">Token</span><span>(</span><span style="color:#bf616a;">form</span><span>=&#39;</span><span style="color:#a3be8c;">down</span><span>&#39;, </span><span style="color:#bf616a;">idx</span><span>=</span><span style="color:#d08770;">7</span><span>, </span><span style="color:#bf616a;">lemma</span><span>=&#39;</span><span style="color:#a3be8c;">down</span><span>&#39;),)
+</span><span>    ]
+</span><span>]
+</span></code></pre>
+<p>Finally, we take the cartesian product of each of these lists of tuples, and unpack the tuples. Because each tuple represents possible ways of choosing tokens for given lemma, this is effectively looking at all combinations of ways to choose words for each lemma, and gives us our original objective - every combination of words that could constitute this MWE. To finish, we sort the results to make sure that the resulting tokens are in order.</p>
+<pre data-lang="python" style="background-color:#2b303b;color:#c0c5ce;" class="language-python "><code class="language-python" data-lang="python"><span>mwe_combinations = {
+</span><span>    </span><span style="color:#bf616a;">tuple</span><span>(x </span><span style="color:#b48ead;">for </span><span>y </span><span style="color:#b48ead;">in </span><span>p </span><span style="color:#b48ead;">for </span><span>x </span><span style="color:#b48ead;">in </span><span>y) 
+</span><span>    </span><span style="color:#b48ead;">for </span><span>p </span><span style="color:#b48ead;">in </span><span style="color:#bf616a;">product</span><span>(*candidate_word_combos)
+</span><span>}
+</span><span>
+</span><span>sorted_mwe_combinations = [
+</span><span>    </span><span style="color:#96b5b4;">sorted</span><span>(raw_combo, </span><span style="color:#bf616a;">key</span><span>=</span><span style="color:#b48ead;">lambda </span><span style="color:#bf616a;">t</span><span>: t.idx) 
+</span><span>    </span><span style="color:#b48ead;">for </span><span>raw_combo </span><span style="color:#b48ead;">in </span><span>mwe_combinations
+</span><span>]
+</span></code></pre>
+<p>The final result:</p>
+<pre data-lang="python" style="background-color:#2b303b;color:#c0c5ce;" class="language-python "><code class="language-python" data-lang="python"><span>[
+</span><span>    [
+</span><span>        </span><span style="color:#bf616a;">Token</span><span>(</span><span style="color:#bf616a;">form</span><span>=&#39;</span><span style="color:#a3be8c;">ran</span><span>&#39;, </span><span style="color:#bf616a;">idx</span><span>=</span><span style="color:#d08770;">1</span><span>, </span><span style="color:#bf616a;">lemma</span><span>=&#39;</span><span style="color:#a3be8c;">run</span><span>&#39;), 
+</span><span>        </span><span style="color:#bf616a;">Token</span><span>(</span><span style="color:#bf616a;">form</span><span>=&#39;</span><span style="color:#a3be8c;">down</span><span>&#39;, </span><span style="color:#bf616a;">idx</span><span>=</span><span style="color:#d08770;">2</span><span>, </span><span style="color:#bf616a;">lemma</span><span>=&#39;</span><span style="color:#a3be8c;">down</span><span>&#39;)
+</span><span>    ], 
+</span><span>    [
+</span><span>        </span><span style="color:#bf616a;">Token</span><span>(</span><span style="color:#bf616a;">form</span><span>=&#39;</span><span style="color:#a3be8c;">ran</span><span>&#39;, </span><span style="color:#bf616a;">idx</span><span>=</span><span style="color:#d08770;">1</span><span>, </span><span style="color:#bf616a;">lemma</span><span>=&#39;</span><span style="color:#a3be8c;">run</span><span>&#39;), 
+</span><span>        </span><span style="color:#bf616a;">Token</span><span>(</span><span style="color:#bf616a;">form</span><span>=&#39;</span><span style="color:#a3be8c;">down</span><span>&#39;, </span><span style="color:#bf616a;">idx</span><span>=</span><span style="color:#d08770;">7</span><span>, </span><span style="color:#bf616a;">lemma</span><span>=&#39;</span><span style="color:#a3be8c;">down</span><span>&#39;)
+</span><span>    ]
+</span><span>]
+</span><span>
+</span></code></pre>
+<p> </p>
+<hr/>
+<div class="footnote-definition" id="mwel_1"><sup class="footnote-definition-label">1</sup>
+<p>Note that while the trie-based approach runs much faster on average, its theoretical worst case runtime is the same as the naive approach. However, getting anywhere near this upper bound with the trie would require a sentence containing most or all of the MWEs in the lexicon, which is not realistic.</p>
+</div>
+
+    </div>
+  </div>
+
+
+			</div>
+
+
+
+			
+			<div class="flex flex-row md:flex-col md:shrink-[0.15] bg-transparent md:h-full md:mr-5 md:mt-10 bg-transparent md:py-0 -my-5 space-x-8 md:space-x-0">
+				<a href="https://github.com/Mindful">
+					<img src="/images/social-github.svg" alt="github" class="w-auto h-auto md:w-2/3 md:h-2/3 pt-2 pb-2"/>
+				</a>
+				<a href="https://www.linkedin.com/in/joshuatanner2">
+					<img src="/images/social-linkedin.svg" alt="linkedin" class="w-auto h-auto md:w-2/3 md:h-2/3 pt-2 pb-2"/>
+				</a>
+				<a href="https://scholar.google.com/citations?user=OqYthY0AAAAJ&h">
+					<img src="/images/social-scholar.svg" alt="google scholar" class="w-auto h-auto md:w-2/3 md:h-2/3 pt-2 pb-2"/>
+				</a>
+				<a href="https://stackexchange.com/users/5319885/mindful">
+					<img src="/images/social-se.svg" alt="stack exchange" class="w-auto h-auto md:w-2/3 md:h-2/3 pt-2 pb-2"/>
+				</a>
+				<a href="https://twitter.com/mindful_jt">
+					<img src="/images/social-twitter.svg" alt="twitter" class="w-auto h-auto md:w-2/3 md:h-2/3 pt-2 pb-2"/>
+				</a>
+				<a href="mailto:mindful.jt@gmail.com">
+					<img src="/images/social-email.svg" alt="email" class="w-auto h-auto md:w-2/3 md:h-2/3 pt-2 pb-2"/>
+				</a>
+			</div>
+			
+
+		</div>
+
+	</body>
+</main>
+</html>
