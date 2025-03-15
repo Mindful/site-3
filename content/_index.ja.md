@@ -2,7 +2,6 @@
 title = "Joshua Tanner"
 template = "index.html"
 aliases = ["/ja/technical"] # from old business card links
-
 +++
 
 

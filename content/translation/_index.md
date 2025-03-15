@@ -1,6 +1,7 @@
 +++
 title = "Joshua Tanner"
 template = "translation.html"
+description = "Japanese/English consecutive interpretation and technical translation"
 +++
 
 

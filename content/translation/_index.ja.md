@@ -1,6 +1,7 @@
 +++
 title = "Joshua Tanner"
 template = "translation.html"
+description= "日英逐次通訳・技術翻訳"
 +++
 
 英和の逐次通訳者として活動しています。経験の多くは国際会議に来客された方の専属通訳になりますが、広範囲の分野にわたって通訳できます。

@@ -2,7 +2,6 @@
 title = "Joshua Tanner"
 template = "index.html"
 aliases = ["/technical"] # from old business card links
-
 +++
 
 Hi there, I'm Josh. 

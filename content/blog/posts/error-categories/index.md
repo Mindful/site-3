@@ -2,6 +2,7 @@
 slug ="/blog/error-categories"
 date = "2021-04-12"
 title = "Funny = おもしろい = Interesting? Categorizing grammatical error explanations"
+description = "What kind of errors do English learners make, and how can they be categorized?"
 +++
 
 I recently worked on a research project attempting to group grammatical errors into categories that could be explained similarly, and develop a process to automatically generate explanations for a particular category. This ultimately didn't pan out as a research idea, but the time I spent working on it gave me some perspective on how one might categorize errors for the purpose of explaining them. This post will be about some of the categorizations I settled on for trying to explain errors, and what I found interesting about them - it will _not_ include technical implementation details from said research, although I will link to a few papers and other outside resources. A couple disclaimers up front:

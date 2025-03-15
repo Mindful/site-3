@@ -2,6 +2,7 @@
 slug = "/blog/promenade"
 date = "2021-05-09"
 title = "My article for Seiken News"
+description = "I wrote a magazine article for the University of Tokyo's Institute of Industrial Science"
 +++
 
 The Institute of Industrial Science, where I am currently doing research, publishes a newsletter called [Seiken News](https://www.iis.u-tokyo.ac.jp/ja/about/publication/seiken_news/) every two months. I had the opportunity to write an article for the April issue's "PROMENADE" section, which is reserved for researchers from abroad. This was my first time writing anything substantial in Japanese, so I thought it was worth holding on to. The article primarily discusses my arrival in Japan and my life since then, but if you're interested, you can read it in "Seiken News #189" at the link provided below.

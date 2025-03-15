@@ -2,11 +2,19 @@
 <html lang="{{ lang }}">
 <head>
 	{% if section %}
-	{% set title = section.title %}
-	{% set description = section.description %}
+		{% set title = section.title %}
+		{% set description = section.description %}
 	{% else %}
-	{% set title = page.title %}
-	{% set description = page.description %}
+		{% set title = page.title %}
+		{% set description = page.description %}
+	{% endif %}
+
+	{% if lang == "ja" %}
+		{% set default_description = "自然言語処理、バックエンド開発、そしてちょっぴり言語学" %}
+		{% set image_alt = "ジョシュア・ターナーの個人サイト" %}
+	{% else %}
+		{% set default_description = "Natural language processing, backend development, and a smidge of linguistics" %}
+		{% set image_alt = "Joshua Tanner's personal site" %}
 	{% endif %}
 	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 	<link rel="stylesheet" href="{{ get_url(path="styles/styles.css")}}" />
@@ -17,13 +25,19 @@
 	<meta name="og:title" content="{{ title }}" />
 	<meta name="twitter:title" content="{{ title }}" />
 
-	<meta name="description" content="{{ description }}" />
-  	<meta name="og:description" content="{{ description }}" />
- 	<meta name="twitter:description" content="{{ description }}" />
+	<meta name="description" content="{{ description | default(value=default_description)}}" />
+  <meta name="og:description" content="{{ description | default(value=default_description)}}" />
+ 	<meta name="twitter:description" content="{{ description | default(value=default_description)}}" />
 
  	<meta property="og:url" content="{{ current_url | safe }}" />
  	<meta property="og:type" content="website" />
  	<meta property="og:site_name" content="Joshua Tanner" />
+
+ 	<meta property="og:image" content="/images/face.png" />
+	<meta property="og:image:alt" content="{{ image_alt }}" />
+
+<meta name="twitter:image" content="/images/face.png" />
+<meta name="twitter:image:alt" content="{{ image_alt }}" />
 </head>
 
 {% if get_env(name="env", default="dev") == "prod" %}
