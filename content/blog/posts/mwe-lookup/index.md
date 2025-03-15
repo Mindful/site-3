@@ -1,7 +1,7 @@
 +++
 slug = "/blog/mwe-lookup"
 date = "2024-03-23"
-title = "Multiword expression lookup: multiset subset retrieval"
+title = "Multiword expression lookup: multiset subset retrieval with tries"
 +++
 
 I've recently spent quite a bit of time thinking about how to find [multiword expressions](https://en.wikipedia.org/wiki/Multiword_expression) (MWEs) in a sentence. MWEs are a pretty messy topic and there is a lot of ambiguity about what even counts as an MWE, but for today I want to put that aside and talk about approaches to automatically identifying MWEs. I am a fan of lexicon-based approaches to MWE identification, which just means that given a very large list of MWEs, you are trying to figure out which of them might be present in a given sentence. This can be broken down into a pipeline that looks something like this:

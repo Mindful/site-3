@@ -1,7 +1,7 @@
 +++
 slug = "/blog/vocabulary-optimization"
 date = "2025-02-16"
-title = "Generating compound words for artificial languages"
+title = "Onion = Cry Vegetable: Generating compound words for artificial languages"
 +++
 
 One of the things that struck me about learning Japanese is that once you know a decent number of kanji, there are a lot of words you can read and understand without ever having seen before. This is because kanji often convey specific meanings: the word for building (`建物`) is `build`+`thing`, confidence (`自信`) is `self`+`believe`, etc. In some cases you can even guess the kanji of a word you hear for the first time, and get to its meaning that way. 
